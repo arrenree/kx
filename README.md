@@ -178,5 +178,210 @@ CMT	2009-01-01T00:00:04.000000	4.6
 / 3. Retrieve the date, month, vendor, passengers, fare, and tip
 / on the earliest date where the tip is greater than 20
 
-select date, month, vendor, passengers, fare, tip from smalltrips where date = min date, tip >20
+select date, month, vendor, passengers, fare, tip from smalltrips where date = min date, tip > 20
 
+date       |   month | vendor | passengers | fare | tip  
+--------------------------------------------------------
+2009.01.01 | 2009.01 |  DDS   |     1      | 33.3 | 33.8 
+2009.01.01 | 2009.01 |  CMT   |     2      | 77.4 | 30   
+2009.01.01 | 2009.01 |  CMT   |     1      | 47   | 95.45
+2009.01.01 | 2009.01 |  CMT   |     1      | 112  | 23.6 
+2009.01.01 | 2009.01 |  CMT   |     1      | 41.4 | 40   
+```
+
+```q
+/ 4. Retrieve duration, total (fare + tip), fare and tip from smalltrips
+
+select duration, total: fare + tip, fare, tip from smalltrips
+
+duration	   total	fare	tip
+-------------------------------
+00:04:12.00	  5.8	   5.8	0.0
+00:05:03.00	  5.4	   5.4	0.0
+00:05:38.00	  5.8	   5.8	0.0
+```
+
+```q
+/ 5. Count the number of trips on the earliest date and for 2 pax
+
+select count i from smalltrips where date = min date, passengers = 2
+270
+```
+
+```q
+/ 6. Retrieve the payment type and fare on the earliest date
+
+select payment_type, fare from smalltrips where date = min date
+
+payment_type fare
+-----------------
+CASH         5.8 
+CASH         5.4 
+CASH         5.8 
+
+```
+
+```q
+/ 7. Retrieve trips where dates are within 2009.01.10 and 2009.01.31
+/ and save in a variable called jan09
+
+jan09: select from smalltrips where date within 2009.01.10 2009.01.31
+
+/ 8. How many records are in the filtered table?
+
+count jan09
+10420159
+```
+```q
+
+/ 9. Retrieve payment type, fare on the earliest date and save as res2
+
+res2: select payment_type, fare from smalltrades where date = min date
+```
+```q
+/ 10. Retrieve the sum of fare and tips from jan09
+
+select sum fare, sum tips from jan09
+
+fare         tip    
+--------------------
+9.840941e+07 5005536
+
+/ other built in aggregators:
+/ sum
+/ avg
+/ med
+/ min
+/ max
+/ count
+```
+
+```q
+/ 11. Retrieve the min and max trip from Jan09
+
+select minTip:min tip, maxTip: max tip from jan09
+
+minTip maxTip
+-------------
+0      100   
+```
+
+Grouping with By
+
+```q
+/ qSQL lets you group and aggregate separately
+/ easiest way to group similar values is using the by clause
+
+/ 12. Retrieve fares by vendor from Jan09
+
+select fare by vendor from jan09
+
+vendor| fare
+------| ----------------
+CMT   | 6.2   12.6   7 
+DDS   | 10.9   8.9   9.7 
+VTS   | 11.3  15.7  18.1
+```
+```q
+/ 13. Retrieve the total fare and tips by vendor from Jan09
+
+select sum fare, sum tip by vendor from jan09
+
+vendor| fare         tip     
+------| ---------------------
+CMT   | 4.430574e+07 2059982 
+DDS   | 6120686      273323.2
+VTS   | 4.798299e+07 2672231 
+```
+
+```q
+/ 14. Get the number of records per day from Jan09
+
+select count i by date from jan09
+
+date      | x     
+----------| ------
+2009.01.10| 483350
+2009.01.11| 405075
+2009.01.12| 414642
+2009.01.13| 442543
+```
+
+```q
+/ 15. What was the biggest tip for each company?
+
+select max tip by vendor from Jan09
+
+vendor| tip  
+------| -----
+CMT   | 93.22
+DDS   | 100  
+VTS   | 100  
+```
+```q
+/ 16. What was the highest tip and avg tip per payment type?
+
+select maxTip:max tip, avgTip:avg tip by payment_type from jan09
+
+payment_type| maxTip avgTip     
+------------| ------------------
+CASH        | 82     0.00077795 
+CREDIT      | 100    2.145682   
+Dispute     | 11.25  0.01481096 
+No Charge   | 13.35  0.006573717
+```
+
+Using fby to avoid nested queries
+
+```q
+/ nested queries are commonly required in SQL
+/ where filter criteria require aggregation in the context of another column
+/ for ex, getting all records where ride duration is less than the average
+/ for that vendor
+```
+
+```q
+/ 17. Get the avg duration per vendor and save as resby
+
+resby: select avgDuration: avg duration by vendor from jan09
+
+/ 18. join this to the jan09 table, and retrieve where duration less than avg duration
+
+select from jan09 lj resby where duration < avgDuration
+
+ate       month   vendor pickup_time                   dropoff_time         ..
+-----------------------------------------------------------------------------..
+2009.01.10 2009.01 VTS    2009.01.10D00:00:00.000000000 2009.01.10D00:08:00.0..
+2009.01.10 2009.01 VTS    2009.01.10D00:00:00.000000000 2009.01.10D00:04:00.0..
+```
+
+```q
+/ can be simplified using fby
+/ syntax is (aggregation; data) fby group
+
+/ 19. Find the max fare from jan09 where the duration is less than the avg duration by vendor
+
+select max fare from jan09 where duration < (avg;duration) fby vendor
+
+fare
+----
+200 
+```
+
+```
+/ 20. Which vendor has the largest number of trips for trips shorter than the avg duration by vendor?
+
+select count i by vendor from jan09 where duration < (avg;duration) fby vendor;
+
+vendor| x      
+------| -------
+CMT   | 2883225
+DDS   | 402781 
+VTS   | 3592460
+
+select vendor from res7b where x = max x
+
+vendor
+------
+VTS   
+```
