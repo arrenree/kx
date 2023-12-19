@@ -1,7 +1,7 @@
 # kx
 
 
-Loading CSV Files (with headers)
+1. Loading CSV Files (with headers)
 
 ```q
 / load weather.csv
@@ -95,8 +95,88 @@ date       |  Month  |vendor|      pickup_time       |       dropoff_time      |
 2009-01-01 | 2009-01 | CMT  | 2009-01-01T00:00:02.00 |	2009-01-01T00:05:40.00 | 00:05:38.00
 2009-01-01 | 2009-01 | CMT  | 2009-01-01T00:00:04.00 |	2009-01-01T00:03:08.00 | 00:03:04.00
 2009-01-01 | 2009-01 | CMT  | 2009-01-01T00:00:07.00 |	2009-01-01T00:19:01.00 | 00:18:54.00
-
 ```
 
+```q
+/ 3. Load the partitioned DB
 
+/ a partitioned DB means when data is stored to disk, it is partitioned into different folders
+/ for ex, days might be stored into a new date folder
+/ this partitioning allows kdb to perform very fast queries as a full database scan is not rquired to retrieve data
+``` 
+
+2. Data Exploration
+
+```q
+/ 1. Check to see what tables are currently in database
+
+tables []
+
+`smalltrips`weather
+```
+```q
+/ 2. Check how many records are in the smalltrips table
+
+count smalltrips
+1000
+```
+
+```q
+/ 3. Check the schema of smalltrips (column names, types, foreign keys, attributes)
+
+meta smalltrips
+
+c	           | t | f | a
+-------------------------
+date	       | d		
+month	       | m		
+vendor       | s		
+pickup_time  | p       s		
+dropoff_time | p		
+duration	   | n		
+passengers   | j		
+distance	   | f		
+start_long	 | f		
+start_lat	   | f		
+end_long	   | f		
+end_lat	     | f		
+payment_type | s		
+fare	       | f		
+surcharge	   | f		
+tip	         | f		
+tolls	       | f		
+total	       | f		
+```
+
+3. qSQL
+
+```q
+/ 1. Show the table for smalltrips
+
+select from smalltrips
+
+date       |  Month  |vendor|      pickup_time       |       dropoff_time      |   duration	
+---------------------------------------------------------------------------------------------
+2009-01-01 | 2009-01 | CMT  | 2009-01-01T00:00:00.00 |	2009-01-01T00:04:12.00 | 00:04:12.00
+2009-01-01 | 2009-01 | CMT  | 2009-01-01T00:00:00.00 |	2009-01-01T00:05:03.00 | 00:05:03.00
+```
+
+```q
+/ 2. Retrieve the vendor, pickup times, and fares from smalltrips
+
+select vendor, pickup_time, fare from smalltrips
+
+vendor	pickup_time	fare
+----------------------------------
+CMT	2009-01-01T00:00:00.000000	5.8
+CMT	2009-01-01T00:00:00.000000	5.4
+CMT	2009-01-01T00:00:02.000000	5.8
+CMT	2009-01-01T00:00:04.000000	4.6
+
+```
+```q
+/ 3. Retrieve the date, month, vendor, passengers, fare, and tip
+/ on the earliest date where the tip is greater than 20
+
+select date, month, vendor, passengers, fare, tip from smalltrips where date = min date, tip >20
 
