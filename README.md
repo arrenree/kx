@@ -385,3 +385,185 @@ vendor
 ------
 VTS   
 ```
+
+Updating Existing Data
+
+```q
+/ 1. Retrieve the max number of passengers by vendor
+
+select max passenger by vendor from jan09
+
+vendor| passengers
+------| ----------
+CMT   | 5         
+DDS   | 6         
+VTS   | 113  
+```
+
+```q
+/ 2. update max number of passengers to 5 and save to jan09
+
+jan09: update passengers: 5 from jan09 where passengers > 5
+
+/ updated passengers to 5 where passengers > 5
+```
+```q
+
+/ 3. Double check your work by running the above query again
+
+select max passengers by vendor from jan09
+
+vendor| passengers
+------| ----------
+CMT   | 5         
+DDS   | 5         
+VTS   | 5
+
+/ note that it's now 5 passengers
+```
+
+```q
+/ 4. Add a new column to jan09 that calculates the weighted average fare per passenger
+
+jan09: update wavgfare: passengers wavg fare from jan09
+
+/ updating a new column name will append it to the table
+/ wavg = built in function that takes weighted average of x wavg y
+```
+
+```q
+/ 5. How can you check if the new column is properly appended (if table too big)
+
+meta jan09
+
+c           | t f a
+------------| -----
+date        | d    
+month       | m    
+vendor      | s    
+pickup_time | p    
+dropoff_time| p    
+duration    | n    
+passengers  | i    
+distance    | f    
+start_long  | f    
+start_lat   | f    
+end_long    | f    
+end_lat     | f    
+payment_type| s    
+fare        | f    
+surcharge   | e    
+tip         | f    
+tolls       | f    
+total       | f    
+wAvgfare    | f
+
+/ using meta, you can see the wavgfare column at the end
+```
+```q
+/ 6. Count the number of lines in Jan09
+
+count jan09
+10420159
+```
+```q
+/ 7. Delete the trips that didnt take place (ie, no duration)
+
+jan09: delete from jan09 where duration = 00:00:00.000
+
+```
+
+```q
+/ 8. Now double check your work (use count again)
+
+count jan09
+10357181
+
+/ records removed
+```
+
+Temporal Arithmetic
+
+```q
+
+/ 1. Retrieve the pickup time, cast as seconds, minutes, and hours
+
+select pickup_time, pickup_time.second, pickup_time.minute, pickup_time.hh from jan09
+
+pickup_time                   second   minute hh
+------------------------------------------------
+2009.01.10D00:00:00.000000000 00:00:00 00:00  0 
+2009.01.10D00:00:00.000000000 00:00:00 00:00  0 
+2009.01.10D00:00:00.000000000 00:00:00 00:00  0 
+2009.01.10D00:00:00.000000000 00:00:00 00:00  0
+
+/ .second cast as seconds
+/ .minute cast as minutes
+/ . hh cast as hours
+```
+
+```q
+/ 2. retrieve the total fare + tip by pickup time in minutes
+
+select total: sum fare + tip by pickup_time.minutes from jan09
+
+minute| total   
+------| --------
+00:00 | 81036.05
+00:01 | 80896.72
+00:02 | 81054.25
+00:03 | 79761.3
+```
+
+```q
+/ 3. Aggregate the number of rides in 15 minute buckets on 2009.01.01
+
+select count i by 60 xbar pickup_time.minute from jan09 where date = 2009.01.01
+
+minute| x    
+------| -----
+00:00 | 28975
+01:00 | 24007
+02:00 | 20202
+03:00 | 15472
+04:00 | 9721 
+05:00 | 4288 
+06:00 | 4309 
+07:00 | 6303 
+08:00 | 9735
+
+/ since you're "counting" the number of rides, need to use count i
+/ 60 xbar pickup_time.minute = groups pickup_time col into 60 min buckets
+```
+
+```q
+/ 4. Show the largest tip for each 15 minute timespan during january
+
+select max tip by 15 xbar pickup_time.minute from jan09
+
+minute| tip  
+------| -----
+00:00 | 90   
+00:15 | 68   
+00:30 | 62   
+00:45 | 100  
+01:00 | 73.3
+```
+
+```q
+
+/ 5. Break the above down by vendor
+
+select max tip by 15 xbar pickup_time.minute, vendor from jan09
+
+minute vendor| tip  
+-------------| -----
+00:00  CMT   | 35   
+00:00  DDS   | 23.2 
+00:00  VTS   | 90   
+00:15  CMT   | 55   
+00:15  DDS   | 55   
+00:15  VTS   | 68
+```
+
+
