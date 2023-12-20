@@ -3,6 +3,9 @@
 
 1. [qSQL](#qsql)
 2. [Joins](#joins)
+3. [Data Structures](#data)
+4. [Functions](#functions)
+5. [Loading Data](#load)
 
 <hr>
 
@@ -799,8 +802,86 @@ CMT    2009.01.31D09:30:00.000000000 2009.01.31 2009.01 2009.01.31D09:38:56.0..
 ```
 <hr>
 
-[3.0] Data Structures
+<a name="data"></a>
+### 🔴 [3.0] Data Structures
+[Top](#top)
 
 
+🔵 [3.1] Lists
+
+```q
+/ 1. Retrieve fares from trips on 2009.01.01 for vendor VTS
+
+vtsfare: select fare from trips where date = 2009.01.01, vendor = `VTS
+
+fare
+----
+5.7 
+4.9 
+4.9 
+4.5 
+4.9 
+15.3
+3.7 
+8.5 
+13.3
+11.3
+
+```
+
+```q
+/ since tables in kdb are column oriented, columns can be extracted by simply indexing
+
+/ 2. Retrieve fares as a list from table vtsfare using indexing
+
+fares: vtsfares`fare
+5.7 4.9 4.9 4.5 4.9 15.3 3.7 8.5
+
+/ syntax is tablename`col_name
+```
+
+```q
+/ 3. Check the datatype for fares (simple list)
+
+type fares
+9h
+
+/ 9h means simple list
+/ positive number means list (neg means atom)
+```
+
+```q
+
+/ 4. Create a general list with sym VTS and float 23.45
+
+general: (`VTS;23.45)
+
+/ 5. Check the type for general list
+
+type general
+0h
+
+/ general lists always have type zero
+```
+
+🔵 [3.2] Casting
+
+```q
+/ casting is to convert one type to another
+
+`float$ 1 2
+1 2f
+
+/ converts using symbol name
+
+"f"$ 1 2
+1 2 f
+
+/ converts using character letter
+
+9h$ 1 2
+1 2f
+
+/ converts using short value
 
 
