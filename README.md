@@ -1,12 +1,18 @@
 # KX Academy Notes
+<a name="top"></a>
+
+1. [qSQL](#qsql)
+2. [Joins](#joins)
+
 <hr>
 
+<a name="qsql"></a>
+### 🔴 [1.0] qSQL
+[Top](#top)
 
-
-[1.0] qSQL 
 <hr>
 
-[1.1] Loading CSV Files (with headers)
+🔵 [1.1] Loading CSV Files (with headers)
 
 ```q
 / load weather.csv
@@ -110,7 +116,7 @@ date       |  Month  |vendor|      pickup_time       |       dropoff_time      |
 / this partitioning allows kdb to perform very fast queries as a full database scan is not rquired to retrieve data
 ``` 
 
-[1.2] Data Exploration
+🔵 [1.2] Data Exploration
 
 ```q
 / 1. Check to see what tables are currently in database
@@ -153,7 +159,7 @@ tolls	       | f
 total	       | f		
 ```
 
-[1.3] qSQL
+🔵 [1.3] qSQL
 
 ```q
 / 1. Show the table for smalltrips
@@ -271,7 +277,7 @@ minTip maxTip
 0      100   
 ```
 
-[1.4] Grouping with By
+🔵 [1.4] Grouping with By
 
 ```q
 / qSQL lets you group and aggregate separately
@@ -337,7 +343,7 @@ Dispute     | 11.25  0.01481096
 No Charge   | 13.35  0.006573717
 ```
 
-[1.5] Using fby to avoid nested queries
+🔵 [1.5] Using fby to avoid nested queries
 
 ```q
 / nested queries are commonly required in SQL
@@ -392,7 +398,7 @@ vendor
 VTS   
 ```
 
-[1.6] Updating Existing Data
+🔵 [1.6] Updating Existing Data
 
 ```q
 / 1. Retrieve the max number of passengers by vendor
@@ -488,7 +494,7 @@ count jan09
 / records removed
 ```
 
-[1.7] Temporal Arithmetic
+🔵 [1.7] Temporal Arithmetic
 
 ```q
 
@@ -573,7 +579,9 @@ minute vendor| tip
 
 <hr>
 
-[2.0] Joins
+<a name="joins"></a>
+### 🔴 [2.0] Joins
+[Top](#top)
 
 ```q
 / a join combines data from 2 tables, or from a table and dict
@@ -596,7 +604,7 @@ date      | maxtemp mintemp
 2009.01.31| 27      20
 ```
 
-[2.1] Left Join
+🔵 [2.1] Left Join
 
 ```q
 / 1. From the trips csv file, retrieve all trips in January, name this jan09
@@ -683,7 +691,7 @@ date      | trips  avgtemp
 / joins the number of trips from jan09C to the avg temp from weather
 ```
 
-[2.2] As-of Join
+🔵 [2.2] As-of Join
 
 ```q
 / As-of joins is a powerful time series joins within q
