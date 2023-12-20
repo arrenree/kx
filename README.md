@@ -1,7 +1,12 @@
-# kx
+# KX Academy Notes
+<hr>
 
 
-1. Loading CSV Files (with headers)
+
+# [1.0] qSQL 
+<hr>
+
+[1.1] Loading CSV Files (with headers)
 
 ```q
 / load weather.csv
@@ -105,7 +110,7 @@ date       |  Month  |vendor|      pickup_time       |       dropoff_time      |
 / this partitioning allows kdb to perform very fast queries as a full database scan is not rquired to retrieve data
 ``` 
 
-2. Data Exploration
+[1.2] Data Exploration
 
 ```q
 / 1. Check to see what tables are currently in database
@@ -148,7 +153,7 @@ tolls	       | f
 total	       | f		
 ```
 
-3. qSQL
+[1.3] qSQL
 
 ```q
 / 1. Show the table for smalltrips
@@ -266,13 +271,13 @@ minTip maxTip
 0      100   
 ```
 
-Grouping with By
+[1.4] Grouping with By
 
 ```q
 / qSQL lets you group and aggregate separately
 / easiest way to group similar values is using the by clause
 
-/ 12. Retrieve fares by vendor from Jan09
+/ 1. Retrieve fares by vendor from Jan09
 
 select fare by vendor from jan09
 
@@ -282,8 +287,9 @@ CMT   | 6.2   12.6   7
 DDS   | 10.9   8.9   9.7 
 VTS   | 11.3  15.7  18.1
 ```
+
 ```q
-/ 13. Retrieve the total fare and tips by vendor from Jan09
+/ 2. Retrieve the total fare and tips by vendor from Jan09
 
 select sum fare, sum tip by vendor from jan09
 
@@ -295,7 +301,7 @@ VTS   | 4.798299e+07 2672231
 ```
 
 ```q
-/ 14. Get the number of records per day from Jan09
+/ 3. Get the number of records per day from Jan09
 
 select count i by date from jan09
 
@@ -308,7 +314,7 @@ date      | x
 ```
 
 ```q
-/ 15. What was the biggest tip for each company?
+/ 4. What was the biggest tip for each company?
 
 select max tip by vendor from Jan09
 
@@ -319,7 +325,7 @@ DDS   | 100
 VTS   | 100  
 ```
 ```q
-/ 16. What was the highest tip and avg tip per payment type?
+/ 5. What was the highest tip and avg tip per payment type?
 
 select maxTip:max tip, avgTip:avg tip by payment_type from jan09
 
@@ -331,7 +337,7 @@ Dispute     | 11.25  0.01481096
 No Charge   | 13.35  0.006573717
 ```
 
-Using fby to avoid nested queries
+[1.5] Using fby to avoid nested queries
 
 ```q
 / nested queries are commonly required in SQL
@@ -341,11 +347,11 @@ Using fby to avoid nested queries
 ```
 
 ```q
-/ 17. Get the avg duration per vendor and save as resby
+/ 1. Get the avg duration per vendor and save as resby
 
 resby: select avgDuration: avg duration by vendor from jan09
 
-/ 18. join this to the jan09 table, and retrieve where duration less than avg duration
+/ 2. join this to the jan09 table, and retrieve where duration less than avg duration
 
 select from jan09 lj resby where duration < avgDuration
 
@@ -359,7 +365,7 @@ ate       month   vendor pickup_time                   dropoff_time         ..
 / can be simplified using fby
 / syntax is (aggregation; data) fby group
 
-/ 19. Find the max fare from jan09 where the duration is less than the avg duration by vendor
+/ 3. Find the max fare from jan09 where the duration is less than the avg duration by vendor
 
 select max fare from jan09 where duration < (avg;duration) fby vendor
 
@@ -369,7 +375,7 @@ fare
 ```
 
 ```
-/ 20. Which vendor has the largest number of trips for trips shorter than the avg duration by vendor?
+/ 4. Which vendor has the largest number of trips for trips shorter than the avg duration by vendor?
 
 select count i by vendor from jan09 where duration < (avg;duration) fby vendor;
 
@@ -386,7 +392,7 @@ vendor
 VTS   
 ```
 
-Updating Existing Data
+[1.6] Updating Existing Data
 
 ```q
 / 1. Retrieve the max number of passengers by vendor
@@ -482,7 +488,7 @@ count jan09
 / records removed
 ```
 
-Temporal Arithmetic
+[1.7] Temporal Arithmetic
 
 ```q
 
@@ -551,7 +557,6 @@ minute| tip
 ```
 
 ```q
-
 / 5. Break the above down by vendor
 
 select max tip by 15 xbar pickup_time.minute, vendor from jan09
