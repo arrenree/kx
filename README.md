@@ -3,7 +3,7 @@
 
 
 
-# [1.0] qSQL 
+[1.0] qSQL 
 <hr>
 
 [1.1] Loading CSV Files (with headers)
@@ -570,5 +570,229 @@ minute vendor| tip
 00:15  DDS   | 55   
 00:15  VTS   | 68
 ```
+
+<hr>
+
+[2.0] Joins
+
+```q
+/ a join combines data from 2 tables, or from a table and dict
+/ some joins are keyed; cols in first arg are matched with key cols of second arg
+/ some joins are as-of; time column in first arg specifies corresponding intervals in a time col of second arg
+```
+
+```q
+/ 1. Display max and min temp each week from weather csv
+
+select max maxtemp, min mintemp by 7 xbar date from weather
+
+date      | maxtemp mintemp
+----------| ---------------
+2008.12.27| 34      15     
+2009.01.03| 43      25     
+2009.01.10| 41      9      
+2009.01.17| 47      6      
+2009.01.24| 46      13     
+2009.01.31| 27      20
+```
+
+[2.1] Left Join
+
+```q
+/ 1. From the trips csv file, retrieve all trips in January, name this jan09
+
+jan09: select from trips where date within 2009.01.01 2009.01.31
+
+/ retrieves all trips within january
+```
+
+```q
+/ 2. Count the number of trips per day from Jan09, call this jan09C
+
+jan09C: select trips: count i by date from jan09
+
+date      | trips 
+----------| ------
+2009.01.01| 327625
+2009.01.02| 376708
+2009.01.03| 432710
+2009.01.04| 367525
+2009.01.05| 370901
+2009.01.06| 427394
+2009.01.07| 371043
+2009.01.08| 477502
+
+/ note the above table is a keyed table
+```
+
+```q
+/ How to Key tables:
+
+`date xkey weather  / keying on date
+1!weather           / keying first column
+3! weather          / keying first 3 columns
+0!                  / unkey table (remove all keys)
+
+/ lj operator requires RIGHT table to be keyed
+
+```
+
+```q
+/ 3. select date and precipitation from weather table
+/ key the result on date
+/ join to the jan09C table
+
+select date, precip from weather / retreieves date and precip columns
+
+`date xkey select date, precip from weather / keys date column from result
+
+jan09W:jan09C lj `date xkey select date, precip from weather  / joins jan09C with resulting table
+
+date      | trips  precip
+----------| -------------
+2009.01.01| 327625 0     
+2009.01.02| 376708       
+2009.01.03| 432710       
+2009.01.04| 367525 0     
+2009.01.05| 370901       
+2009.01.06| 427394 0.08  
+2009.01.07| 371043 1.19
+```
+
+```q
+/ 4. Join the number of trips with avg temp from weather per day for month of jan
+
+select date, avgtemp from weather 
+/ retrieves date avgtemp from weather
+
+`date xkey select date, avgtemp from weather
+/ keys the date column
+
+jan09C lj `date xkey select date, avgtemp from weather
+
+date      | trips  avgtemp
+----------| --------------
+2009.01.01| 327625 20.5   
+2009.01.02| 376708 28.5   
+2009.01.03| 432710 33.5   
+2009.01.04| 367525 33.5   
+2009.01.05| 370901 40.5   
+2009.01.06| 427394 34.5   
+2009.01.07| 371043 34.5   
+
+/ joins the number of trips from jan09C to the avg temp from weather
+```
+
+[2.2] As-of Join
+
+```q
+/ As-of joins is a powerful time series joins within q
+/ aj[matching columns; t1; t2]
+
+/ 1. Create a time table with 3 passengers and 30 minute times called timetab
+ 
+timetab:([] passengers:1 2 3; event_time:2009.01.06D03:30:00+00:30*til 3)
+
+passengers event_time                   
+----------------------------------------
+1          2009.01.06D03:30:00.000000000
+2          2009.01.06D04:00:00.000000000
+3          2009.01.06D04:30:00.000000000
+
+/ note this table has 2 columns, passengers and event_time
+```
+
+```q
+/ reminder - jan09 is a huge table
+/ can extract column names using meta
+
+meta jan09
+
+c           | t f a
+------------| -----
+date        | d    
+month       | m    
+vendor      | s    
+pickup_time | p    
+dropoff_time| p    
+duration    | n    
+passengers  | i    
+distance    | f    
+start_long  | f    
+start_lat   | f    
+end_long    | f    
+end_lat     | f    
+payment_type| s    
+fare        | f    
+surcharge   | e    
+tip         | f    
+tolls       | f    
+total       | f    
+```
+
+```q
+/ 2. Using aj, look up table jan09 to find what was the LAST trip taken at each of the times above with those pasengers
+/ use pickup_time as event_time reference
+
+aj[`passengers`event_time;timetab;select passengers, event_time:pickup_time, vendor, pickup_time from jan09]
+
+/ aj[matching columns; t1; t2]
+/ matching columns = passengers, event_time (appear on both tables)
+/ t1 = timetab (table you created above)
+/ t2 = retrieve passengers, event_time:pickup_time, vendor, and pickup_time from jan09
+/ notice you rename pickup_time from jan09 as event_time to match t1
+
+passengers event_time                    vendor pickup_time                  
+-----------------------------------------------------------------------------
+1          2009.01.06D03:30:00.000000000 VTS    2009.01.06D03:30:00.000000000
+2          2009.01.06D04:00:00.000000000 VTS    2009.01.06D04:00:00.000000000
+3          2009.01.06D04:30:00.000000000 CMT    2009.01.06D04:29:22.000000000
+4          2009.01.06D05:00:00.000000000 CMT    2009.01.06D04:59:54.000000000
+5          2009.01.06D05:30:00.000000000 VTS    2009.01.06D05:30:00.000000000
+6          2009.01.06D06:00:00.000000000 VTS    2009.01.06D05:59:00.000000000
+
+/ the result is the record for each vendor with time_event < to the time we specifieid
+/ an aj join will always select the last record before the specified time
+```
+
+```q
+/ 3. Find latest trips as of 09:30 on Jan 31 for each vendor
+
+/ 3a. First, create timetab timeseries with vendors = VTS, DDS, CMT
+/ and pickup times on 2009.01.31 @ 09:30 
+
+timetab:([] vendor: `VTS`DDS`CMT; pickup_time:3#2009.01.31D09:30:00)
+timetab
+
+vendor pickup_time                  
+------------------------------------
+VTS    2009.01.31D09:30:00.000000000
+DDS    2009.01.31D09:30:00.000000000
+CMT    2009.01.31D09:30:00.000000000
+
+/ 3b. Then use aj join to join this table with jan09
+/ using vendor and pickup time as matching columns
+
+aj[`vendor`pickup_time;timetab;jan09]
+
+/ aj[matching columns; t1; t2]
+/ vendor, pickup_time = matching columns (on both tables)
+/ timetab = t1
+/ jan09 = t2
+
+vendor pickup_time                   date       month   dropoff_time         ..
+-----------------------------------------------------------------------------..
+VTS    2009.01.31D09:30:00.000000000 2009.01.31 2009.01 2009.01.31D09:41:00.0..
+DDS    2009.01.31D09:30:00.000000000 2009.01.31 2009.01 2009.01.31D09:35:17.0..
+CMT    2009.01.31D09:30:00.000000000 2009.01.31 2009.01 2009.01.31D09:38:56.0..
+
+/ result is a joined table whereby it pulls in the latest result from jan09
+/ based on the timeseries from timetab
+```
+<hr>
+
+[3.0] Data Structures
+
+
 
 
