@@ -810,7 +810,10 @@ CMT    2009.01.31D09:30:00.000000000 2009.01.31 2009.01 2009.01.31D09:38:56.0..
 🔵 [3.1] Lists
 
 ```q
+/ you can simply retrieve a column from a table as a list
+
 / 1. Retrieve fares from trips on 2009.01.01 for vendor VTS
+/ assign the result to variable vtsfares
 
 vtsfare: select fare from trips where date = 2009.01.01, vendor = `VTS
 
@@ -827,36 +830,42 @@ fare
 13.3
 11.3
 
+/ retrieved single column (fare) from table trips
 ```
 
 ```q
-/ since tables in kdb are column oriented, columns can be extracted by simply indexing
+/ since tables in kdb are column oriented, columns can be extracted by indexing
 
 / 2. Retrieve fares as a list from table vtsfare using indexing
+/ assign the results to variable fares
 
 fares: vtsfares`fare
 5.7 4.9 4.9 4.5 4.9 15.3 3.7 8.5
 
+/ indexing method to retrieve a list from a table
 / syntax is tablename`col_name
 ```
 
 ```q
-/ 3. Check the datatype for fares (simple list)
+/ 3. Check the datatype for fares
 
 type fares
 9h
 
 / 9h means simple list
+/ simple list = list with all same datatypes
 / positive number means list (neg means atom)
 ```
 
 ```q
-
 / 4. Create a general list with sym VTS and float 23.45
+/ general list = different datatypes (aka mixed list)
 
 general: (`VTS;23.45)
+```
 
-/ 5. Check the type for general list
+```q
+/ 5. Check the datatype for general
 
 type general
 0h
@@ -869,19 +878,269 @@ type general
 ```q
 / casting is to convert one type to another
 
-`float$ 1 2
-1 2f
+/ 1. show 3 ways to convert ints 1 2 to floats
 
-/ converts using symbol name
-
-"f"$ 1 2
+`float$ 1 2 / converts using symbol name
+"f"$ 1 2 / converts using character letter
+9h$ 1 2 / converts using short value
 1 2 f
+```
 
-/ converts using character letter
+```q
+/ 2. Create an empty, general list
 
-9h$ 1 2
-1 2f
+()
 
-/ converts using short value
+/ this creates an empty, general list
+```
+
+```q
+/ 3. Cast the empty list to longs
+
+`long$()
+```
+
+```q
+/ 4. Retrieve fares as a list
+
+fares
+5.7 4.9 4.9 4.5 4.9 15.3 3.7...
+
+/ can simply retrieve data as a list
+/ by calling its varaible name (fares)
+/ recall earlier you did this
+/ fares: vtsfares`fare
+```
+```q
+/ 5. Retrieve the 10 first rows of data from fares
+
+10 sublist fares
+5.7 4.9 4.9 4.5 4.9 15.3 3.7 8.5 13.3 11.3
+
+/ sublist will retrieve the x number of items from a list
+```
+```q
+/ 6. Retrieve the last 10 items from fares
+
+-10 sublist fares
+12.9 4.9 44.5 5.3 19.3 9.3 8.9 45 9.7 4.5
+
+/ negative sublist will retrieve the LAST 10 numbs
+```
+
+```q
+/ 7. Retrieve the second 10 elements in list
+
+-10 sublist 20 sublist fares
+22.5 6.9 16.5 24.1 9.3 9.3 6.1 8.1 5.7 8.5
+
+/ so 20 sublist = retrieves 20 items
+/ then -10 retrieves the LAST 10 items from the list of 20
+
+/ alternative syntax:
+
+10 10 sublist fares
+```
+```q
+/ 8. What is the diff btwn sublist and take #
+
+/ sublist only retrieves up to the list amount (does not loop)
+/ while take keeps looping
+
+a: 1 2 3 4 5
+
+10 sublist a
+1 2 3 4 5
+
+/ 10 is longer than list (5), so stops at 5 items
+
+10 # a
+1 2 3 4 5 1 2 3 4 5
+
+/ take loops back around the list
+```
+```q
+/ 9. Sort fares by ascending order
+/ then retrieve 10 items
+
+10 sublist asc fares
+2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5
+```
+```q
+/ 10. Retrieve the 10 largest numbers from fares
+
+-10 sublist asc fares
+104 104 108.5 112.5 120 122 128 134.3 190 200
+
+/ asc sorts from low to high
+/ so taking the last 10 = 10 largest from list
+```
+
+🔵 [3.3] Obtaining Random Data
+
+```q
+/ 1. Create sortedFares, which is fares from low to high
+
+sortedFares: asc fares
+
+/ 2. Retrieve 10 random records from sortedFares
+/ and assign as sampleFares
+
+10?sortedFares
+9.7 9.3 4.1 6.5 6.5 5.7 5.7 8.9 45 7.3
+```
+
+```q
+/ 3. Retrieve the 10th element from sampleFares
+
+sampleFares[9]
+11.3
+
+/ indexing starts at 0, so 10th element = 9
+```
+
+```q
+/ 4. Retrieve the first 10 elements of fares using til
+
+fares[til 10]
+
+/ til 10 = 0 - 9
+/ so you will index a list of 0-9
+```
+
+```q
+/ 5. Retrieve the 11th to 20th element from fares using til
+
+fares[10 + til 10]
+
+/ til 10 = 0 1 2 3 4 5
+/ 10 + til 10 = 10 + every element in list
+/ so becomes 10, 11, 12, etc.
+```
+```q
+/ 6. Assume a random list of 10 numbers
+/ Use indexing to find the middle value in fares
+
+a: 10?100
+12 10 1 90 73 90 43 84 63
+
+/ generate a random list of 10 numbers
+
+a:asc a 
+
+/ sort list from small to big
+
+a [`long$(count a)%2]
+73
+
+/ count a = total number of elements %2
+/ then cast as a long
+/ doesn't work if you try to cast a float
+```
+```q
+/ 7. What's the difference between 1 sublist and first?
+
+1 sublist fares
+,2.5
+
+/ returns a list
+
+first sublist
+2.5
+
+/ returns an atom
+```
+```q
+/ 8. Use enlist to return a list containing 499
+
+enlist 499
+, 499
+
+/ creates a list of a single element
+```
+```q
+/ 9. Create a list by joining an empty list with 499
+
+(), 499
+, 499
+
+/ can join a blank list with an atom
+/ to create a single item list
+```
+
+🔵 [3.4] @ Operator
+
+```q
+/ 1. Generate a random list of 20 items from 0-99
+
+a: 20? 100
+
+/ 2. Retrieve elements 0 2 4 6 8 from a using indexing
+
+a[2*til 5]
+a[0 2 4 6 8]
+93 38 88 68 2
+
+/ til 5 = 0 1 2 3 4 
+/ 2 * 0 2 4 6 8
+```
+
+```q
+/ 3. Retrieve the same, using the @ operator
+
+@[a; (2*til 5)]
+93 38 88 68 2
+
+/ syntax is @ [list; indexing]
+```
+
+```q
+/ 4. Create b, list from 1 to 10
+
+b: 1 + til 10
+1 2 3 4 5 6 7 8 9 10
+```
+
+```q
+/ 4b. Retrieve elements 0, 2, 4, 6, 8 from b using @ operator
+
+@[b;(2*til 5)]
+1 3 5 7 9
+
+/ 2 * til 5 = 0 2 4 6 8
+/ so from b, retrieves element using indexing
+```
+
+```q
+/ 4c. Retrieve list b, but replace elements 0, 2, 4, 6, 8 with 100
+
+@[b;(2* til 5); : ;100]
+100 2 100 4 100 6 100 8 100 10
+
+/ retrieves list b (1 2 3 ...10)
+/ but replaces those indexed elements with 100
+/ the : replaces the indexed result with 100
+```
+
+```q
+/ 4d. Retrieve list b, but subtract 1 from elements 0, 2, 4, 6, 8
+
+@[b;(2* til 5); - ; 1]
+0 2 2 4 4 6 6 8 8 10
+
+/ so b = 1 2 3 4 5 6 7 8 9 10
+/ 1 - 1 = 0
+/ 3 -2 = 2
+/ etc
+
+/ same works with + instead of -
+/ note these changes are NOT persistent
+/ if you want to save the changes, use backtick
+
+@[`b;(2* til 5); - ; 1]
+```
+
+
+
 
 
