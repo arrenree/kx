@@ -1139,8 +1139,113 @@ b: 1 + til 10
 
 @[`b;(2* til 5); - ; 1]
 ```
+```q
+/ 5. cast list b to floats
+/ then replace index elements 0, 2, 4, 6, 8 with nulls (0Nf)
 
+b: `float$b / cast list b as floats
 
+@[`b;(2*til 5);:;0Nf]
+0n 2 0n 4 0n 6 0n 8 0n 10f
+
+/ replaced index elements with 0N = nulls
+/ note backtick b saves the result
+```
+```q
+/ 6. Check if list b has any nulls
+
+any null b
+1b
+
+/ 1b = true
+```
+```q
+/ 7. Replace any nulls in b with average of list b
+
+@[b; where null b;:;avg b]
+6 2 6 4 6 6 6 8 6 10f
+
+/ note you can use "where null b"
+/ aka, where there are nulls in b
+/ replace with avg of b
+/ can perform operations on replacement!
+```
+
+🔵 [3.5] @ Dictionaries
+
+```q
+/ dictionaries are first class objects in q
+/ also known as hashmaps in other languages
+/ use ! operator to create
+```
+
+```q
+/ 1. Create a dictionary with syms a, b with 0 and 1
+
+d: `a`b ! 0 1
+a| 0
+b| 1
+```
+
+```q
+/ 2. update the value of a with 2
+
+d[`a]: 2
+
+a| 2
+b| 1
+```
+```q
+/ 3. add `c with value 3 to your dictionary
+
+d[`c]:3
+
+a| 2
+b| 1
+c| 3
+
+/ indexing a new key will append it + value
+```
+```q
+/ 4. create d1:
+
+d1: `a`b`c`d ! 5 6 7 8
+a| 5
+b| 6
+c| 7
+d| 8
+```
+```q
+/ 5. join d and d1 together, adding values for common keys
+
+d + d1
+
+a| 7
+b| 7
+c| 10
+d| 8
+
+/ matches on key, then adds value together
+/ a = 2 + 5 = 7
+/ b = 1 + 6 = 7
+/ c = 3 + 7 = 10
+/ d = null + 8 = 8
+```
+```q
+/ 6. join d and d1 together, update values for matched keys, insert values for new keys
+
+d, d1
+
+a| 5
+b| 6
+c| 7
+d| 8
+
+/ match on a, replaces with 5 (from d1)
+/ match on b, replaces with 6 (from d1)
+/ match on c, replaces with 7 (from d1)
+/ no match on d, inserts new record (from d1)
+```
 
 
 
