@@ -1247,5 +1247,121 @@ d| 8
 / no match on d, inserts new record (from d1)
 ```
 
+🔵 [3.6] @ Tables
+
+```q
+/ 1. Create a table from a list of like dictionaries
+
+`a`b! 0 1
+
+Key |	Value
+----------
+a   |	  0
+b	  |   1
+
+/ simple dictionary with keys a, b
+
+/ if you create a list of dict with same keys:
+
+(`a`b! 0 1; `a`b! 2 3)
+
+a | b
+------
+0 | 1
+2 | 3
+
+/ notice the keys a and b become column headers
+/ and the corresponding values fall into table
+/ so a table is a flipped dictionary
+```
+
+```q
+/ 2. Create a table from flipping a dictionary
+
+flip `a`b! (0 2; 1 3)
+
+a | b
+------
+0 | 1
+2 | 3
+
+```
+
+```q
+/ 3. Create dict with keys a, b, c and assign each key a list of 3 random ints
+
+dict: `a`b`c! (3?10i; 3?10i; 3?10i)
+
+a| 1 4 0
+b| 0 8 5
+c| 9 7 2
+
+/ 4. Add new key d, with double values of key a
+
+dict[`d]: 2*dict[`a]
+
+a| 1 4 0
+b| 0 8 5
+c| 9 7 2
+d| 2 8 0
+
+/ when you index a new key for dict
+/ it adds the key
+/ dict[`a] will retrieve the VALUES for key a
+/ and multiply by 2 for each
+```
+
+```q
+/ 4. make a table from dict
+
+tab: flip dict
+
+a b c d
+-------
+1 0 9 2
+4 8 7 8
+0 5 2 0
+```
+
+```q
+/ 5. Make a new table by joining the table to itself
+
+tab2: tab, tab
+
+a b c d
+-------
+1 0 9 2
+4 8 7 8
+0 5 2 0
+1 0 9 2
+4 8 7 8
+0 5 2 0
+
+```
+
+```q
+/ 6. Key column b in new table, rename as keytab
+
+keytab: `b xkey tab2
+
+/ syntax is col_name xkey table_name
+```
+
+```q
+/ 7. Compare the types of dict, tab, and keytab
+
+type each (dict;tab;keytab)
+99 98 99h
+
+/ 99 = dict
+/ 98 = table
+/ 99h = keyed table
+```
+
+<a name="qsql"></a>
+### 🔴 [4.0] Functions
+[Top](#top)
+
+
 
 
