@@ -1362,6 +1362,240 @@ type each (dict;tab;keytab)
 ### 🔴 [4.0] Functions
 [Top](#top)
 
+```q
+/ functions are a list of expressions
+/ separated by semicolons and encased by curly brackets
+
+/ to "call" a function = run it with your inputs/arguments
+/ functions are called with arguments in square brackets [ ]
+
+max [10 11 12] / functional notation
+12
+
+/ with unary functions (single argument), we can omit the brackets
+max 10 11 12 / infix notation
+12
+```
+
+```q
+/ 2. Create a binary function called speed
+
+speed: {[miles;hours] mph: miles%hours; kph: 1.609*mph; :kph; }
+
+/ binary function = 2 arguments
+/ miles and hours are the arguments
+/ you can define variables within function like mph
+/ kph is a local variable we defined inside func
+/ we can explictly return it using :
+/ requires semi colons between expressions
+```
+
+```q
+/ 3. Call function speed with args 15 and 0.5
+
+speed[15;0.5]
+48.27
+
+```
+
+```q
+/ 4. If there is no explicit return from a function
+/ its result is the last expression
+/ re-write above with no return
+
+speed: {[miles;hours] 1.609*miles%hours}
+speed[15;0.5]
+48.27
+
+```
+Calling Functions with List of Arguments
+
+```q
+/ 4. You can call a function with a list of arguments
+/ recall your arguments are mile and hours
+
+speed[15 20 30; 0.5 1.0 1.5]
+48.27 32.18 32.18
+
+/ this is important!
+/ you called a LIST of miles (15 20 30)
+/ and a LIST of hours (0.5 1.0 1.5)
+```
+
+Explicit and Implicit Parameters
+
+```q
+/ in the above speed function, miles and hours are explicit arguments
+/ these are also known as explicit parameters
+
+/ if function has less than 3 arguments
+/ their names can be ommited
+/ and x, y, and z are used as implicit arguments
+
+/ 1. Re-write speed using implicit arguments
+
+speed:{1.609*x%y}
+
+/ replaced miles and hours with x and y
+```
+
+```q
+/ 2. Call speed with 2 distances and a single duration
+
+speed[15 30; 0.5]
+48.27 96.54
+
+```
+
+```q
+/ 3. Create a function that will find the area of a rectangle with length 7.93 and width 1.87 using implicit parameters
+
+func:{x*y}
+func[7.93;1.87]
+```
+
+Call Functions from qSQL
+
+```q
+/ 1. from smalltrips, retrieve all trips in January
+
+jan09:select from smalltrips where date within 2009.01.01 2009.01.31
+
+/ filters dates in jan
+```
+
+```q
+/ 2. Retrieve speed, distance, and duration for VTS
+/ jan09 is a table, and in addition to retrieving data from columns
+/ you can call functions in sQSL queries
+
+select spd:speed[distance;duration % 0D01:00], distance, duration from jan09 where vendor=`VTS
+
+spd      | distance |      duration             
+-------------------------------------------
+ 48.5918 |   1.51   |  0D00:03:00.000000000 
+-17.3772 |   1.26   | -0D00:07:00.000000000
+14.28792 |   0.74   |  0D00:05:00.000000000 
+
+/ spd is a FUNCTION (speed) and the arguments are column inputs
+/ note you are also changing duration from timespan to hours
+/ can use meta to confirm datatype of duration
+
+```q
+/ 3. Retrieve the avg speed by vendor
+/ avg speed = total 
+
+select avgspeed:speed[sum distance;sum[duration]%0D01:00] by vendor from jan09
+
+vendor| avgspeed
+------| --------
+CMT   | 24.43787
+DDS   | 22.21592
+VTS   | 22.33302
+
+/ avg speed calc as total distance * total duration
+/ need to convert duration to hours (and float)
+```
+
+```q
+/ 4. Create func called tipOverDistance that divides argument x by argument y
+
+tod:{x%y}
+
+/ 5. Create func called createtable that retrieves vendor, distance, tip, and adds new col from result of tipoverdistance applied to cols tip and distance where the distance is creater than 1 mile
+
+createtable: {select vendor, distance, tip, tipPerDist:tod[tip;distance] from jan09 where distance > 1.0}
+
+/ so you create this function called createtable
+/ which is essentially a table
+/ to display the output (table) of your function
+
+/ just do createtable[]
+
+createtable[]
+
+vendor |	distance |	tip |	tipPerDist
+-----------------------------------
+CMT    |	   1.3   |	0.0 |  	 0.0
+CMT	   |    5.5   |	0.0	|    0.0
+CMT	   |    2.1	  | 0.0	|    0.0
+CMT	   |    3.7  	| 0.0	|    0.0
+```
+
+```q
+/ 6. Find the avg tip per mile per vendor from createtable
+
+select avg tipPerDist, avg distance, avg tip by vendor from createTable[]
+
+/ you are simply retrieving the averages of the columns from createtable[]
+```
+
+Iterators
+
+```q
+/ an iterator is an operator that modifies how a function is applied
+```
+
+```q
+/ 1. say we want to add 1 2 + 3 4 5
+
+1 2 + 3 4 5
+error
+
+/ length error
+/ the add operator iterates implictly, but expects its arguments to be atoms or have matching lengths
+/ in this instance, we can use each right or each left
+```
+
+Each Left
+
+```q
+/ syntax:
+x f\: y
+
+/ equivalent:
+f[ ; y] each x
+
+/ will function EACH LEFT ARG
+/ to entire RIGHT
+/ the top of the \ is pointing LEFT
+
+1 2 +\: 3 4 5
+
+4 5 6
+5 6 7
+
+/ so adds 1 to 3 4 5
+/ then adds 2 to 3 4 5
+```
+
+Each Right
+
+```q
+/ syntax:
+x f/: y
+
+/ equilvalent:
+f[x; ] each y
+
+/ will function EACH RIGHT arg
+/ to entire LEFT
+/ top of the / points RIGHT
+
+1 2 +/: 3 4 5
+4 5
+5 6
+6 7
+
+/ adds 3 to 1 2
+/ adds 4 to 1 2
+/ adds 5 to 1 2
+```
+
+
+
+
+
 
 
 
