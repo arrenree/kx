@@ -1592,10 +1592,48 @@ f[x; ] each y
 / adds 5 to 1 2
 ```
 
+Each
 
+```q
+/ 1. Create list l as a list of chars
 
+l: ("the";"quick";"brown";"fox")
+```
+```q
+/ 2. Count the number of elements in l
 
+count l
+4
 
+/ there are 4 elements in the list
+```
+
+```q
+/ 3. How many elements are within each list?
+
+count each l
+3 5 5 3
+
+/ counts the number of chars within each list
+```
+
+Each Both
+
+```q
+/ each both adds every element of x to every element of y
+/ x,'y
+
+/ 4. Create two lists x: 1 2 3 4, y: 10 20 30 40 and join them item by item, returning a pair of lists (type 0h
+
+x: 1 2 3 4
+y: 10 20 30 4 
+
+x ,'y
+(1 10;2 20;3 30;4 4)
+
+/ each both joins every element of x to every element of y
+/ returning a pair of lists
+```
 
 
 
