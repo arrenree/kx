@@ -1635,5 +1635,126 @@ x ,'y
 / returning a pair of lists
 ```
 
+Accumulating iterators
 
+```q
+/ map iterators apply a function across arguments
+/ accumulator iterators are applied repeatedly to results of successive evaluations
+
+/ scan (\) - shows all results. scan battlefield, so perched high in a defensive position \.
+
+/ over (/) - only shows final result. Jump over the wall. so / easier to jump over. think "it's over" so only shows last result
+```
+
+```q
+n: 1 3 6 9
+
++/[n] / sum over
+19 
+
++\[n] / sum scan
+1 4 10 19
+```
+
+```q
+/ different syntax formats:
+
+function/[data]
+(function/) data
+
+
+/ Add these numbers, fold '+' over the vector
+/ fold is sometimes called reduce or inject
+(+/) 1 2 3 4
+10
+
+sum 1 2 3 4 / Another way to sum the values, using a built-in function
+10
+```
+
+```q
+/ cumulative sums (running sums)
+
+(+\)1 2 3 4 / Cumulative sums, using scan
+1 3 6 10
+
+sums 1 2 3 4 / Same, using the built-in function
+1 3 6 10
+```
+```q
+/ 1. create function add, which adds x+x, then iterate this list across 3 6 8
+
+add:{x+x}
+add each 3 6 8
+6 12 16
+
+/ you can use each to iterate function across multiple arguments
+```
+
+```q
+/ 2. Create a new function, add2:{x+y}, and iterate this list of integers across it, (3 6 8;4 7 9) so that the first value of each list is added together
+
+add2:{x+y}
+add2'[3 6 8; 4 7 9]
+7 13 17
+
+/ alternative syntax
+'[add2][3 6 8; 4 7 9]
+
+/ so you use 'each
+/ to feed EACH element of 2 lists into add2 function
+```
+```q
+/ 3. Multiple each value in this list, 3 5 4 2, against the value 11. Use the over iterator
+
+11 */ 3 5 4 2
+1320
+
+/ 3b. create a function that performs the same
+
+{x*y}/[11;3 5 4 2]
+
+/ so your "function" is x*y
+/ and you're feeding in x = 11 and y = 3 5 4 2
+/ the over iterator performs the function through entire arg list
+```
+```q
+/ 4. Create a func that generates the first 10 elements of the fibo sequence
+/ each num is sum of preceding 2 numbers
+/ starts with 0 1
+
+/ assume x is list of numbers
+
+sum -2#x
+/ take last 2 elements of x, add them together
+
+x, sum -2#x
+/ joins the result of sum of last 2 elements with list x
+
+{x,sum -2#x} 0 1
+/ Create function, test by using list of 0 and 1 as arg
+/ so x = 0 1 (together)
+/ RIGHT TO LEFT
+/ takes list of 0 1, adds last 2 elements = 1
+/ then takes x (0 1) and joins 1
+/ hence 0 1 1
+
+fib:{x, sum -2#x}
+/ names function (remove testing)
+ 
+fib[0 1 1 2 3 5]
+0 1 1 2 3 5 8
+
+/ test your function by feeding fibo sequence
+/ so fib = calculates the NEXT number in sequence
+
+/ use the "do" form of over
+/ to repeat the function 10x
+ 
+fib/[10;0 1]
+0 1 1 2 3 5 8 13 21 34 55 89
+
+/ so this says, repeat 10x
+/ and start x as 0 1
+```
 
