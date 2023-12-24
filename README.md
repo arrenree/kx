@@ -1408,7 +1408,8 @@ speed[15;0.5]
 48.27
 
 ```
-Calling Functions with List of Arguments
+
+🔵 [4.2] Calling Functions with List of Arguments
 
 ```q
 / 4. You can call a function with a list of arguments
@@ -1422,7 +1423,7 @@ speed[15 20 30; 0.5 1.0 1.5]
 / and a LIST of hours (0.5 1.0 1.5)
 ```
 
-Explicit and Implicit Parameters
+🔵 [4.3] Explicit and Implicit Parameters
 
 ```q
 / in the above speed function, miles and hours are explicit arguments
@@ -1454,7 +1455,7 @@ func:{x*y}
 func[7.93;1.87]
 ```
 
-Call Functions from qSQL
+🔵 [4.4] Call Functions from qSQL
 
 ```q
 / 1. from smalltrips, retrieve all trips in January
@@ -1530,7 +1531,7 @@ select avg tipPerDist, avg distance, avg tip by vendor from createTable[]
 / you are simply retrieving the averages of the columns from createtable[]
 ```
 
-Iterators
+🔵 [4.5] Iterators
 
 ```q
 / an iterator is an operator that modifies how a function is applied
@@ -1547,7 +1548,7 @@ error
 / in this instance, we can use each right or each left
 ```
 
-Each Left
+🔵 [4.6] Each Left
 
 ```q
 / syntax:
@@ -1569,7 +1570,7 @@ f[ ; y] each x
 / then adds 2 to 3 4 5
 ```
 
-Each Right
+🔵 [4.7] Each Right
 
 ```q
 / syntax:
@@ -1592,7 +1593,7 @@ f[x; ] each y
 / adds 5 to 1 2
 ```
 
-Each
+🔵 [4.8] Each
 
 ```q
 / 1. Create list l as a list of chars
@@ -1617,7 +1618,7 @@ count each l
 / counts the number of chars within each list
 ```
 
-Each Both
+🔵 [4.9] Each Both
 
 ```q
 / each both adds every element of x to every element of y
@@ -1635,7 +1636,7 @@ x ,'y
 / returning a pair of lists
 ```
 
-Accumulating iterators
+🔵 [4.10] Accumulating iterators
 
 ```q
 / map iterators apply a function across arguments
@@ -1718,6 +1719,9 @@ add2'[3 6 8; 4 7 9]
 / and you're feeding in x = 11 and y = 3 5 4 2
 / the over iterator performs the function through entire arg list
 ```
+
+🔵 [4.11] Fibonacci Case Study
+
 ```q
 / 4. Create a func that generates the first 10 elements of the fibo sequence
 / each num is sum of preceding 2 numbers
