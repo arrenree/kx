@@ -6,6 +6,7 @@
 3. [Data Structures](#data)
 4. [Functions](#functions)
 5. [Loading Data](#load)
+6. [Atoms & Primitives](#atoms)
 
 <hr>
 
@@ -1761,4 +1762,362 @@ fib/[10;0 1]
 / so this says, repeat 10x
 / and start x as 0 1
 ```
+
+<a name="atoms"></a>
+### 🔴 [6.0] Atoms & Primitives
+[Top](#top)
+
+🔵 [6.1] Atoms
+
+```q
+/ an atom is a irreducible datatype in kdb/q
+/ default number = long
+
+/ if we want to create an atom of a datatype that isn't the default,
+/ we can specify the type with a CHAR trailing type indicator (will be some letter)
+
+type 30
+-7
+
+/ so default number = long = 7
+
+/ 1b. now make 30 a real datatype using e
+
+type 30e
+-8h
+
+/ now it comes a "real" = type 8
+
+/ 1c. now make it a short
+
+type 30h
+-5h
+
+/ now it comes a "short" = type 5
+```
+
+🔵 [6.2] Vectors/Lists
+
+```q
+/ a vector is a list of atoms
+
+1 2 3
+/ this is a list of longs
+```
+
+```q
+/ a string is a list of chars
+
+"thisisastring"
+
+/ this is a string aka list of chars
+/ encased with double parathesis
+```
+
+🔵 [6.3] Temporal Datatypes
+
+```q
+/ TIME datatype
+
+type 09:30:00.000 
+-19h / time datatype
+
+/ SECOND datatype
+type 09:30:00 
+-18h / second datatype
+
+/ MINUTE datatype
+type 09:30
+-17h / minute datatype
+```
+
+```q
+/ KDB understands arithmetic between these types
+/ and highest level of granularity is preserved
+
+09:30:00.000 + 00:12
+09:42.00.000
+
+/ preseves time datatype
+
+09:30:00 + 00:12
+09:42.00
+
+/ preserves second datatype
+```
+
+```q
+/ DATES in KDB have format yyyy.mm.dd
+
+type 2020.01.01
+-14h
+
+/ date datatype
+```
+
+```q
+/ a TIMESTAMP is combination of time + date
+/ the current timestamp is:
+
+.z.p
+2024-01-12T06:41:58.594829p
+```
+
+```q
+/ 1. What is the current timestamp?
+
+.z.p
+2024-01-12T05:28:02.671597p
+
+/ 1b. What datatype is this?
+
+type .z.p
+-12h
+
+/ neg means atom
+/ 12 h = timestamp
+```
+
+```q
+/ 2. Show a null long
+
+show nulllong:0Nj
+0N
+
+/ 2b. Show a null float
+
+show nullfloat: 0Nf
+0n
+```
+
+🔵 [6.4] Dataype Nulls and Infinite Values
+
+```q
+/ each datatype has an associated null and infinite value
+
+type 0N / null long
+type 0w / infinite float
+type 0Nf / null float
+```
+
+```q
+/ can use null keyword to identify null values
+
+null 0N 2 1 0N 3
+10010b
+
+/ returns a list of booleans
+```
+
+```q
+/ return null type of minute
+
+0nu
+
+type 0nu
+-17h
+
+/ -17 = minute datatype
+
+/ use null keyword to check
+
+null 0nu
+1b
+
+/ true
+```
+
+🔵 [6.5] Boolean Comparisons & Built in Functions
+
+```q
+/ 1. Given the list 2 4 1 2 3, return a boolean list
+/ if the element contains a value of 2
+/ expected outcome: 10010b
+
+2 = 2 4 1 2 3
+10010b
+
+/ by using the comparison operator
+/ will compare left element to every element in right list
+/ and return a list of booleans
+```
+
+```q
+/ 2. Calculate the standard deviation of the series 1 2 3 4 5
+
+dev 1 2 3 4 5
+1.414
+
+/ use dev for standard deviation
+```
+
+```q
+/ 3. Find the difference in values in the series 2 8 4 9
+
+deltas 2 8 4 9
+2 6 -4 5
+```
+
+🔵 [6.6] Primitives
+
+```q
+/ 1. There are 140 calories in candy. Daily calorie intake guidance is 2000
+/ how many bags should we eat a day?
+
+2000 % 140
+14.2857143
+
+/ 2. How do you round to nearest bag?
+/ hint - use the floor keyword
+
+floor 2000 % 140
+14
+
+/ floor rounds down to the nearest whole number
+
+/ 3. you can also use div the keyword
+
+2000 div 140
+14
+```
+
+```q
+/ 2. how do you check if 1 is in list 1 2 3 4?
+
+1 in 1 2 3 4
+1b
+
+/ is LEFT in RIGHT list?
+```
+
+```q
+/ 3. how do you check if 1 2 are in list 2 3 4?
+
+1 2 in 2 3 4
+01b
+
+/ are (these LEFT items) in (this RIGHT list)
+```
+
+```q
+/ 4. Check what day of the week today is?
+
+.z.d mod 7
+6i
+
+/ in KDB, the week "starts" on a saturday
+/ so sat = 0, sun = 1, mon =2....fri = 6
+/ so friday!
+
+/ worth remembering that weekends are 0 1 (sat n sun)
+```
+
+🔵 [6.7] Functional Notation & Projecting in-built Primitives
+
+```q
+/ 1. Create an addition function using the + operator
+
+add:+
+add[5;5]
+10
+```
+
+```q
+/ 2. Create an equality function using the = built-in primitive
+
+=[2;3]
+0b
+
+/ = will compare the 2 elements for equality
+```
+
+```q
+/ 3. Create an addition function that already has one input defined (for ex, 4)
+
+add4: 4+
+add4 3
+7
+
+/ you can save built in primitives (+ or -) as a variable (add4)
+/ then apply the variable to another input
+
+/ 3b. Create an addition function using the [ ] syntax
+
+add5: +[5]
+add5 2
+7
+
+/ 3c. Here's an alternative syntax
+
+add6: +[ ;6]
+add6 3
+9
+
+/ 4c. This also works:
+
+add7: +[7; ]
+add7 1
+8
+```
+
+```q
+/ 4. Create a function to see if 2 arguments have same value and type
+
+equality:~
+equality[3;3]
+1b
+
+/ ~ match compares both value + type
+/ since its a built-in primitive, you can use it compare 2 arguments
+```
+
+```q
+/ 5. Create a func to return a booleans indicating whether an arg is positive
+/ hint - you want to "bind" the second argument as 0
+/ and feed in a list of values as your first argument
+
+ispositive: >[ ; 0]
+ispositive -4 2 8
+011b
+
+/ so you feed in list of elements (-4 2 8) as x
+/ and your function checks if x if > 0 (your second arg)
+```
+
+```q
+/ 6. Create a function that takes 2 away from a list of inputs
+
+minus2: -[ ; 2]
+minus2 10 9 8
+8 7 6
+
+/ first argument (x) = list of inputs (10 9 8)
+/ second argument (y) = 2
+```
+
+```q
+/ 7. Create a function that subtracts a list of inputs from 10
+
+sub10:-[10; ]
+sub10 1 2 3
+9 8 7
+
+/ so x stays constant at 10
+/ and subjects a list of inputs y
+```
+
+```q
+/ 8. Create a funct that takes a sole number and doubles it
+
+double:2*
+double 2 3 4
+4 6 8
+
+```
+
+
+
+
+
+
 
