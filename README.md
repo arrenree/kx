@@ -2922,4 +2922,196 @@ reverse fills reverse g
 / syms are commonly used for stock tickers in tables
 ```
 
+🔵 [7.12] Lists Problem Set
+
+```q
+/ 1. create list of 20 elements called list1
+
+list1: til 20
+```
+
+```q
+/ 2. use ? to create 10 elements from 10-40
+
+list2: 10?10_til 41
+
+/ til 41 = 0 t0 40
+/ then drop the first 10 elements
+
+/ alternative syntax
+
+10 + 10?31
+
+/ so you are retrieving 10 elements from 0-30
+/ then adding 10 to the outcome
+```
+
+```q
+/ 3. create list3 which is list1 joined with list2
+
+list3: list1, list2
+
+/ easy, join lists using comma ,
+```
+
+```q
+/ 4. create list4, which is first 2 elements of list1
+/ joined to everything except first element of list2
+
+list4: (2#list1), 1_list2
+
+/ take first 2 from list1
+/ drop first element from list2
+```
+```q
+/ 5. Generate a "rack" of timeseries from 10:00am
+/ to 2pm using 30 minute intervals
+
+/ a. how many total hours?
+
+14-10
+4
+
+/ from 10am to 2pm
+/ so 4 hours
+
+/ b. how many time intervals? (remember 30 mins)
+
+2*(14-10)
+8
+
+/ so 8 total intervals
+
+/ c. you need to create a "timeseries"
+/ so need to create "list" of 8 elements
+/ can achieve this by using til 1
+
+til 1 + 2*(14-10)
+0 1 2 3 4 5 7 8
+
+/ created timeseries of 8 intervals
+
+/ d. Create a series of 30 minute windows
+
+00:30:00* til 1+2*(14-10)
+00:00:00v;
+00:30:00v;
+01:00:00v;
+01:30:00v;
+02:00:00v;
+02:30:00v;
+03:00:00v;
+03:30:00v;
+04:00:00v)
+
+/ created timeseries of 30 minutes
+/ up to 8 intervals
+
+/ e. Start time is 10:00, so add 10:00
+
+10:00:00 + 00:30:00* til 1+2*(14-10)
+10:00:00v;
+10:30:00v;
+11:00:00v;
+11:30:00v;
+12:00:00v;
+12:30:00v;
+13:00:00v;
+13:30:00v;
+14:00:00v)
+
+/ boom.
+```
+```q
+/ 6. Create a new variable newlist3 by
+/ extracting the 3rd element from list1
+
+newlist3:list1[2]
+
+/ retrieves index position 2 = 3rd element
+```
+```q
+/ 7. given list k, calc the number of elements > 5
+
+k : 3 4 5 6 7 8 9
+
+sum k > 5
+
+/ k > 5 returns a list of booleans
+/ 1  = true
+/ so adding those up lets you know total number
+/ of elements > 5
+```
+```q
+/ 8. Extract the elements in k greater than 5
+
+k where k > 5
+6 7 8 9
+
+/ k > 5 = returns boolean list
+/ where = returns index position where true
+/ then feed it back into K as index retrieve
+/ to retrieve the values based on those index positions
+```
+```q
+/ 9. update the elements > 5 to be null long
+
+k[where k>5]: 0N
+3 4 5 0N 0N 0N 0N
+
+/ use indexing to replace values in list
+/ [where k>5] returns index position
+```
+```q
+/ 10. Create p: 5 random shorts from 0-20
+/ and create v: 10 random shorts from 0-20
+
+p: 5?21h
+v: 10?21h
+
+/ type h = short
+```
+```q
+/ 11. Compute intersection of p and v
+
+p inter v
+4 9 11 11h
+
+/ use inter to calculate the intersection of 2 lists
+```
+```q
+/ 12. Return the distinct elements in p in ascending order
+
+distinct asc p
+
+/ distinct = only retrieves distinct values
+/ asc = sorts by ascending
+```
+```q
+/ 13. find the index positions where elements overlap in p and v
+
+where p in v
+0 2 3 4
+
+/ checks if elements in p appear in v
+/ where = return sindex position
+```
+```q
+/ 14. Retrieve the elements in p NOT in v
+
+p except v
+
+/ alternative syntax
+
+p where not p in v
+
+/ not p in v = elements that DONT appear
+/ where = index position
+/ feed back into p
+```
+
+
+
+
+
 
