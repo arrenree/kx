@@ -8,6 +8,8 @@
 5. [Loading Data](#load)
 6. [Atoms & Primitives](#atoms)
 7. [Lists](#Lists)
+8. [String Manipulation](#string)
+
 
 <hr>
 
@@ -3110,8 +3112,280 @@ p where not p in v
 / feed back into p
 ```
 
+<a name="string"></a>
+### 🔴 [8.0] String Manipulation
+[Top](#top)
 
+```q
+/ a string is a list of chars
+/ you can create a string by using the "string" operator
 
+string 20
+"20"
+
+string 6*5
+"30"
+
+string .z.d
+"2024.01.14"
+```
+
+Display Output
+
+```q
+/ if we dont want to return our final evaluation
+/ we use a ; at the end of expression
+
+"hello"
+"farewell";
+"world"
+
+"hello"
+"world"
+
+/ the "farewell" doesn't get evaluated due ;
+```
+```q
+/ to print to consol, use 0N!
+
+0N!"it's time";
+"it's time"
+
+/ this prints to the consol
+/ need the ; at end otherwise will run twice
+```
+Vectors from Scalar (vs) 
+Scalars from Vectors (sv)
+
+```q
+/ vs can be used to split up string
+/ based on existing delimiter
+
+vs[";";"a=10;b=20;c=IBM"]
+"a=10"
+"b=20"
+"c=IBM"
+
+/ result is list of strings
+/ first arg = delimiter = ;
+/ splits string into 3
+
+/ alternative syntax:
+
+";" vs "a=10;b=20;c=IBM"  
+"a=10"
+"b=20"
+"c=IBM"
+```
+```q
+/ 1. split the string on ";*"
+
+a:vs[";*";"a=10;*b=20;*c=IBM"]
+"a=10"
+"b=20"
+"c=IBM"
+
+/ split on ;*
+/ result is a list of strings
+```
+sv function
+
+```q
+/ sv function used to create a bigger string
+/ from a list of smaller strings
+/ so opposite of vs
+
+sv["|";("a=10";"b=20";"c=IBM")]
+"a=10|b=20|c=IBM"
+
+/ so taking the list of strings:
+/ ("a=10";"b=20";"c=IBM")
+/ create a bigger string, using | to connect
+```
+```q
+/ 1. Use vs to write each word of
+/ "Its about time!" on seperate line
+
+vs[" ";"Its about time!"]
+"Its"
+"about"
+"time!"
+
+/ uses the space as delimiter
+```
+```q
+/ 2. Given the list of strings
+/ ("AAPL";"TD12kdi12";"34.21"), combined these
+/ together to create a single pipe ("|") delimited string
+
+"|" sv ("AAPL";"TD12kdi12";"34.21")
+"AAPL|TD12kdi12|34.21"
+
+/ alternative syntax for sv
+/ uses | as delimiter to join the list of strings
+```
+Trimming Strings
+
+```q
+/ ltrim removes leading or left whitespace from strings
+/ rtrim moves trailing or right whitespace from strings
+/ trim will remove both leading and trailing whitespace from strings
+
+ltrim "             abc   "
+"abc   "
+
+/ removed leading whitespace
+
+rtrim "  abc              "
+"  abc"
+
+/ removed trailing whitespace
+
+trim  "         abc       "
+"abc"
+
+/ removed both leading and trailing whitespace
+```
+Add Padding
+
+```q
+/ use $ operator to add padding
+/ aka "pad"
+
+10$"example"
+"example   "
+
+/ added 10 spaces to trailing whitespace
+
+-10$"example"
+"   example"
+
+/ neg = adds 10 spaces to prevailing whitespace
+```
+
+Lower/Upper
+
+```q
+lower `SMALL
+`small
+
+upper`big
+`BIG
+```
+Like Comparison for Strings
+
+```q
+/ The keyword like is used to:
+/ 1. Compare strings with other strings
+/ 2. Compare strings with symbols
+
+y:"IBM.OQ"
+
+/ y is a simple string
+
+like[y;"IBM*"]
+1b
+
+/ Does the input string begin in “IBM” - followed by anything
+/ the * means followed by anything
+/ since y = "IBM.OQ"
+
+/ alternative syntax
+y like "IBM*"
+```
+```q
+/ does the string end in .OQ?
+
+y:"IBM.OQ"
+like[y;"*.OQ"]  
+1b
+
+/ does the input string end in “.OQ”
+/ yes, it does
+/ the * before means wildcard
+```
+```q
+/ can use ? as a single wild card
+
+y:"IBM.OQ"
+like[y;"I?M*"]
+1b
+
+/ the "?" acts like a single wild card
+/ does the string begin wtih I_M
+/ followed by something?
+```
+
+```q
+like["this";"[tT]his"]     
+1b
+
+/ the 1st character can either be “t” or “T”
+/ uses [ ] to check
+
+like["his";"[tT]his"]
+0b
+```
+String Search (and replace)
+
+```q
+ss[x;y]
+
+s:"toronto ontario"
+s ss "ont"
+
+3 8
+
+/ searches string for "ont"
+/ shows up twice
+/ 3 8 are index positions
+```
+```q
+s:"toronto ontario"
+s ss "[ir]o"
+2 13
+
+/ mix with regex search
+```
+
+```q
+s ss "t?r"
+0 10
+
+/ match with tor and tar
+```
+
+ ```q
+/ Find index pos of all o's in string
+
+s:"toronto ontario"
+ss[s;o]
+1 3 6 8 14
+
+/ from string s
+/ search for o
+```
+
+String Search Replace
+
+```q
+s:"toronto ontario"
+ssr[s;"ont";"x"] 
+"torxo xario"
+
+/ for string s
+/ search for "ont"
+/ replace with x
+
+/ note you cannot use * to match ss and ssr
+```
+```q
+/ replace all "o's" with "s"
+
+s:"toronto ontario"
+ssr[s;"o";"s"]
+"tsrsnts sntaris"
+```
 
 
 
