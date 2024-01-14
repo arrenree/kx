@@ -2516,4 +2516,288 @@ k[1 2]
 2 3
 ```
 
+🔵 [7.6] Where Operator in Lists
+
+```q
+where 000111b
+3 4 5
+
+/ where operator in list returns indices where booleans are TRUE (1b)
+```
+```q
+/ WHERE is useful to find positions where certain criteria is met
+
+k: 10?50
+/ generate 10 random numbers from 0-49
+
+k > 30 
+0001000010b
+
+/ using comparison operator, returns list of booleans
+/ where element fits criteria
+
+where k > 30
+3 8
+
+/ index positions 3 and 8 are TRUE
+
+/ can then use list of indices to index BACK into original list
+/ and return VALUES that meet the criteria
+
+k[where[k>30]]
+40 43 37
+
+/ so this is actually pretty important
+/ you first use comparison operator to find TRUE values in criteria
+/ which is any number > 30
+/ then you ask WHERE the index positions are
+/ then you INDEX those index positions back into list
+/ to retrieve the actual values
+```
+```q
+/ 4. return items in k that are divisible by 3
+
+k: 1 2 3 4 5 6 7
+
+k mod 3
+1 2 0 1 2 0 1
+
+/ mod = remainder after dividing 
+/ third element = 3%3, no remainder, hence 0
+
+where 0=k mod 3
+2 5
+
+/ WHERE = find which index positions =0
+/ when i try to divide by 3
+/ notice syntax. HAVE to put 0= in front
+/ this gives you the INDEX POSITION
+
+/ to retrieve the actual value, need to plug it
+/ back into the original list
+
+k where 0=k mod 3
+3 6
+
+/ boom.
+```
+```q
+/ 5. Given list 1 1 2 3 1 1 2:
+
+/ 5a. Find index position of first 3
+
+1 1 2 3 1 1 2 ? 3
+3
+
+/ list ? atom = FIND index pos of y atom in x list
+
+/ 5b. all index occurences of 3
+
+where 1 1 2 3 1 1 2 = 3
+,3
+
+/ 3 only shows up once in index position 3
+
+/ 5c. type of each return value. what do you notice
+
+type where 1 1 2 3 1 1 2 = 3
+7h
+
+/ notice WHERE returns a list, even if its only one atom
+/ notice its NOT negative
+```
+
+🔵 [7.7] Built in Functions helpful in Lists
+
+```q
+/ these keywords return a singular/atomic value
+
+count / Obtain the count of a list
+first / Extract the first element of a list
+last / Extract the last element of the list
+max / Find the maximum value in a list
+min / Find the minimum value in a list
+avg / Find the mean of a list
+dev / Standard deviation of a list
+var / Variance of a list
+sum / Total summation of a list
+```
+
+```q
+/ these keywords return a list/vector of values
+
+sums / Running total of a list
+maxs / Running maximums through a list
+mins / Running minimums through a list
+avgs / Running average through a list
+null / Returns a boolean list with 1b where any value is null
+distinct / Returns the unique items in the list
+group - Returns a dictionary where each distinct item in the list is mapped to the indexes of occurrence
+```
+
+```q
+L:30 0N 10 20 50 30 60 30 40 50
+
+maxs L
+30 30 30 30 50 50 60 60 60 60
+
+/ keeps returning the max value vs corresponding element in list
+
+mins L
+30 30 10 10 10 10 10 10 10 10
+
+/ keeps returning the min value vs corresponding element in list
+
+avgs L 
+30 30 20 20 27.5 28 33.33333 32.85714 33.75 35.55556
+
+/ returns running average of list
+
+sums L
+30 30 40 60 110 140 200 230 270 320
+
+/ returns running sum of list
+```
+```q
+/ 1. create string t6: ("Welcome";"to";"KDB")
+/ return the word with the most letters
+
+t6: ("Welcome";"to";"KDB")
+
+count each t6
+7 2 3
+
+/ how long is each word?
+/ so we know the first element in list is longest
+
+m: max count each t6
+7
+
+/ of this 3 element list (7 2 3)
+/ which number is the biggest?
+
+t6 where m = max m:count each t6
+/ NGL dont really understand the syntax here
+```
+```q
+/ 2. how do you cap the results from a list query?
+
+/ first create list x
+
+x: 10?50
+x[where x>30]:30
+
+/ this caps the elements of x at 30
+/ but NGL i dont understand the syntax
+```
+```q
+/ 3. given list a: 10 20 1 15 102 3 8 40 3e,
+/ update the value of every second item to be null
+
+/ so assuming a list of 0, 1, 2, 3, 4, 5, etc
+/ want to change 1, 3, 5 = NULL
+
+/ first need to retrieve list of odd indices
+
+count a
+9
+
+/ 9 total elements in a
+
+div[count a;2]
+4
+
+/ 9%5 = 4.5 but div is int division
+
+til div[count a;2]
+0 1 2 3
+
+2 *til div[count a;2]
+0 2 4 6
+
+odd: 1+2 *til div[count a;2]
+1 3 5 7
+
+/ retrieves ODD index positions
+a[odd]: 0Ne
+10 0N 1 0N 102 0N 8 0N 3e
+
+/ update every index position of odd (1 3 5 7)
+/ to null
+/ also updates null to e = real null
+```
+
+🔵 [7.8] Amendment using @
+
+```q
+/ 1. using @ to retrieve items from list
+
+k: 1+til 10
+/ list of 1-10
+
+@[k; 1 2]
+2 3
+
+/ retrieves elements from index position 1 2
+```
+```q
+/ @ primitive can take on more arguments to extend behavior
+/ third arg = functions we wish to perf
+
+@[k; ::; neg]
+-1 -2 -3 -4 -5 -6 -7 -8 -9 -10
+
+/ so the :: in the second argument just means
+/ we aren't selected any indexes in particular
+/ ie, ignore it
+/ then third arg = make everything negative
+```
+
+```q
+/ using @ operator, add 2 to every element in list
+
+@[k; ::; + ; 2] 
+3 4 5 6 7 8 9 10 11 12
+
+/ taking entire list of k
+/ ignoring second arg
+/ add 2 to every element
+```
+
+```q
+/ by specifying the assignment operator : as the 3rd arg
+/ we can update our list values
+/ try updating list l where anything above 10 = null
+
+@[L;where L>10;:;0N]
+9 2 0N 0N 1 0N 0N 4 3 2
+
+/ makes everything above 10 = null
+/ note the @ operator is only in place
+/ does NOT update original list
+/ you'll need to re-assign output back to list if you want to save
+
+L: @[L;where L>10;:;0N]
+
+/ this will save your output back to L
+```
+
+```q
+/ 3. add 300 to every item in list k that is within range 10-15
+
+k: 19 12 16 18 1 11 18 4 3 2
+
+where k within 10 15
+1 5
+
+/ where returns index positions of k
+/ that are within 10 - 15
+
+@[k;where k within 10 15; +; 300]
+19 312 16 18 1 311 18 4 3 2
+
+/ added 300 to index positions 1 and 5
+```
+
+
 
