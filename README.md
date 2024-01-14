@@ -2321,10 +2321,6 @@ error
 4 0
 ```
 
-
-
-
-
 🔵 [7.3] Joining Lists and Indexing to Retrieve
 
 ```q
@@ -2369,6 +2365,7 @@ y[10]
 
 / null real
 ```
+
 🔵 [7.4] Indexing Nested Lists / Matrix
 
 ```q
@@ -2799,5 +2796,130 @@ where k within 10 15
 / added 300 to index positions 1 and 5
 ```
 
+🔵 [7.8] Amendment using . (dot notation)
+
+```q
+m: 3 cut 1 + til 9
+
+1 2 3
+4 5 6
+7 8 9
+
+/ index into the second row, third item
+
+m . 1 2
+6
+
+/ weird syntax...but i guess it makes sense
+
+m . (::;0)
+1 4 7
+
+/ retrieves first column
+/ strange syntax, but :: just means ignore
+/ so ignore row, and retrieve 0 column
+```
+```q
+.[m;0 1]
+2
+
+/ this is the same as m[0;1]
+/ index 0 = row 1
+/ index 1 = second element
+```
+
+```q
+/ update 2 to 500
+
+.[m; 0 1; : ; 500]
+
+1 500  3
+4   5  6
+7   8  9
+
+/ from m, first row, second column
+/ assign :
+/ to 500
+```
+🔵 [7.9] ^ Operator
+
+```q
+/ ^ fill operator (or coalesce)
+/ can replace a null with value
+
+g: 1 2 0N 0N 3 4 0N
+0^g
+1 2 0 0 3 4 0
+
+/ syntax is REPLACEMENT^list_name
+/ in this case replaced nulls with 0
+```
+```q
+/ another way is to replace nulls with the average
+
+avg[g]^g
+1 2 2.5 2.5 3 4 2.5
+
+/ calculates the avg of g
+/ fills the nulls with calculated avg
+```
+```q
+/ say you have 2 lists:
+
+j: 1 2 3 4 5 / reguar list
+k: 10 0N 30 0N 50 / list with nulls
+
+j^k
+10 2 30 4 50
+
+/ replaced nulls in k with corresponding value
+/ in list j
+```
+
+🔵 [7.10] Fills Operator
+
+```q
+/ Fills replaces a null with the previous non null value
+
+g:1 2 0N 0N 3 4 0N
+fills g
+1 2 2 2 3 4 4
+
+/ replaced 0N with 2
+/ then the last 0N with 4
+
+/ this is useful when dealing with time associated data
+/ as we often assume the prevailing value is the one to use
+/ for reference in the absence of a new value
+```
+```q
+/ how would you fill nulls with the reverse value?
+
+g: 1 2 0N 0N 3 4 0N
+
+reverse g
+0N 4 3 0N 0N 2 1
+
+/ first reverse the entire list
+
+fills reverse g
+0N 4 3 3 3 2 1
+
+/ then fill nulls with prevailing value
+
+reverse fills reverse g
+1 2 3 3 3 4 0N
+
+/ then reverse it again to flip it back to original order
+```
+
+🔵 [7.11] Syms vs Strings
+
+```q
+/ strings are commonly used for textual data
+/ and preferred datatype for ID columns
+
+/ syms are commonly used for stock tickers in tables
+```
 
 
