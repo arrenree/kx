@@ -2244,7 +2244,16 @@ type each person
 🔵 [7.2] ? Operator
 
 ```q
-/ ? operator allows for generation of random data
+/ ? can either be used as a random generator
+/ or find
+
+/ if atom ? atom = randomly generate x items frm list y
+/ if list ? atom = find y element from list x
+```
+
+```q
+/ if atom ? atom = random generator
+/ general x random elements from y list
 
 ?[5;10]
 4 8 2 4 3
@@ -2293,6 +2302,29 @@ error
 
 / 10 + til 11 = 10...20
 ```
+
+```q
+/ ? as FIND operator
+
+/ if list ? atom = FIND y atom in list x
+
+1 2 3 4 5 ? 5
+?[1 2 3 4 5; 5]
+4
+
+/ 5 first appears in index position 4
+```
+```q
+/ 1. Find the first occurence of 5 and 1
+
+1 2 3 4 5 ? 5 1
+4 0
+```
+
+
+
+
+
 🔵 [7.3] Joining Lists and Indexing to Retrieve
 
 ```q
@@ -2336,6 +2368,152 @@ y[10]
 0Ne
 
 / null real
+```
+🔵 [7.4] Indexing Nested Lists / Matrix
+
+```q
+/ 1. Create a matrix with 9 elements using CUT
+/ where you multiple base element by 3
+
+m: 3 cut 3 * til 9
+0  3  6 
+9  12 15
+18 21 24
+
+/ 3 * til 9 = multiples 3 with every element from 0-8
+/ CUT keyword cuts up list by left hand arg (3)
+```
+```q
+/ 2. Retrieve the first row
+
+m[0]
+0 3 6
+
+/ index 0 retrieves first ROW
+```
+```q
+/ 3. Retrieve 3 6 from first row
+
+m[0][1 2]
+3 6
+
+/ index 0 = first row
+/ then retrieve index position 1 and 2
+```
+```q
+/ 4. What is the difference between m[0;1] and m 0 1
+
+m[0;1]
+3
+
+/ retrieve index row 0 = first row
+/ then retrieve index element 1 = second element = 3
+
+m 0 1
+0  3  6 
+9  12 15
+
+/ retrieves entire rows 0 and 1
+```
+```q
+/ 5. Retrieve the first item from all lists
+
+m[ ; 0]
+0 9 18
+
+/ dont specify first arg (row)
+/ and only retrieves second arg (column)
+/ goes [ROW, COLUMN]
+```
+
+🔵 [7.5] List Manipulation
+
+```q
+# take
+
+k: 1 2 3 4 5
+
+2 # k
+1 2
+
+/ # take first 2 elements of list k
+
+-2 # k
+4 5 
+
+/ # take last 2 elements of list k
+```
+```q
+_ drop
+
+1_k
+2 3 4 5
+
+/ drops first element of k
+
+-1_k
+1 2 3 4
+
+/ drops last element of k
+```
+```q
+sublist
+
+/ sublist = first item = index position start
+/ second item = number of items to retrieve
+
+2 3 sublist 1 2 3 4 5
+3 4 5
+
+/ start from index position 2 (which is 3)
+/ retrieve 3 elements (3, 4, 5)
+
+0 6 sublist "KDB is fun"
+"KDB is"
+
+/ starts index 0
+/ retrieves 6 elements
+```
+```q
+/ 1. What's the diff between take and sublist?
+
+8# til 5
+0 1 2 3 4 0 1 2
+
+8 sublist til 5
+0 1 2 3 4
+
+/ take "loops around" and repeats
+/ while sublist DOES NOT loop nor repeats
+```
+```q
+k: 1 2 3 4 5 6
+
+/ 1. retrieve the last 2 items from k
+
+-2 # k
+5 6
+
+/ 2. retrieve the second from last item of k
+
+(-2#k) 0
+5
+
+/ first retrieve last 2 items of k
+/ then use indexing to retrieve 0 index position
+```
+```q
+k: 1 2 3 4 5
+
+/ 3. Retrieve 2 and 3 from k
+
+1 2 sublist k
+2 3
+
+/ 4. Retrieve index position 1 and 2 from k
+
+k[1 2]
+2 3
 ```
 
 
