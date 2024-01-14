@@ -7,6 +7,7 @@
 4. [Functions](#functions)
 5. [Loading Data](#load)
 6. [Atoms & Primitives](#atoms)
+7. [Lists](#Lists)
 
 <hr>
 
@@ -2012,7 +2013,79 @@ floor 2000 % 140
 / worth remembering that weekends are 0 1 (sat n sun)
 ```
 
-🔵 [6.7] Functional Notation & Projecting in-built Primitives
+🔵 [6.7] Function Notation
+
+```q
+/ Function - a sequence of expressions separated by semicolons
+/ and surrounded by left and right braces
+
+/ there are various ways to apply a function to its arguments
+
+f[x]         / bracket notation
+f x          / prefix
+x + y        / infix
+f\           / postfix
+```
+
+```q
+/ Functional notation uses keyword functions
+/ and applies to arguments on right
+
+neg -10 -2
+-10 -2
+
+/ neg = keyword function
+/ applies neg function to all args on right
+
+/ alternative syntax
+
+neg[10 2]
+-10 -2
+```
+```q
+/ 1. Check if 1 is in 2 3 using functional notation
+
+1 in 2 3
+0b
+/ false
+
+/ alternative syntax
+
+in[1;2 3]
+0b
+
+```
+
+```q
+/ Variable Assignment
+
+/ in KDB, once you assign a variable, you can continue using it
+
+pi: 22%7
+radius: 5
+area: pi * radius * radius
+area
+78.57
+
+/ once you assign 22%7 to pi, you can re-use the variable pi
+```
+
+🔵 [6.8] Functional Notation & Projecting in-built Primitives
+
+```q
+/ in-built kdb functions which take multiple inputs
+/ can be bound to a given input, creating a projection
+
+add2: 2+ / we dont define second input
+add2: +[2; ] / functional notation - leave second parameter blank
+add2: +[2] / alternative syntax; same thing
+
+add2 4
+6
+
+/ takes 2 from original definition
+/ and feeds in 4 from second input
+```
 
 ```q
 / 1. Create an addition function using the + operator
@@ -2112,12 +2185,157 @@ sub10 1 2 3
 double:2*
 double 2 3 4
 4 6 8
-
 ```
 
+<a name="Lists"></a>
+### 🔴 [7.0] Lists
+[Top](#top)
 
+```q
+/ a dictionary is a collection of lists
+/ a table is a list of dictionaries
 
+/ what is the diff between "a" and "abc"
 
+/ "a" is a char
+/ "abc" is a string aka char vector aka list of chars
 
+/ there are 2 types of lists: simple and general lists
+```
+
+```q
+/ note in kdb, default number type are LONGs
+/ if you want a list of ints, need to specify
+
+ints:1 2 3i
+
+/ create a list of 10 ints
+
+ints2: `int$til 10
+
+/ til 10 generates list of 10 longs
+/ then cast to `int
+```
+
+🔵 [7.1] General Lists
+
+```q
+/ a general list is where not all elements are same type
+/ or a list of lists
+/ need to use brackets () and semicolon ; to delimit the diff items
+/ general list has type 0h
+
+person: (`john;32;`USA)
+/ a general list of a sym, long, and sym
+
+type person
+0h
+
+/ type will check the type of entire list
+/ aka general list = 0h
+
+/ to check the type of each item within the list, use EACH
+
+type each person
+-11 -7 -11h
+
+/ sym, long, sym
+```
+🔵 [7.2] ? Operator
+
+```q
+/ ? operator allows for generation of random data
+
+?[5;10]
+4 8 2 4 3
+/ generate a list of 5 random longs between 0-9
+
+/ alternative syntax
+
+5?10
+4 8 2 4 3
+```
+
+```q
+/ canont generate more items than in list
+
+11 ? 10
+error
+
+/ cannot generate 11 items from 10 elements
+```
+
+```q
+/ can generate random data from a list
+
+? [5; 1 2 3]
+1 3 1 3 3
+
+/ generate 5 elements from list 1 2 3
+/ notice elements will repeat
+
+/ alternative syntax
+
+5 ? 1 2 3
+1 3 1 3 3
+
+/same thing
+```
+```q
+/ 1. Generate 5 dates from the 3 dates leading up to 2023.01.01
+
+5 ? 2011.01.01-til 3
+2011.01.01 2010.12.30 2011.01.01 2010.12.31 2010.12.30
+```
+```q
+/ 2. Generate 100 random numbers form 10-20
+100 ? 10 + til 11
+
+/ 10 + til 11 = 10...20
+```
+🔵 [7.3] Joining Lists and Indexing to Retrieve
+
+```q
+/ we can join lists using ,
+
+1 2 , 3 4 5
+1 2 3 4 5
+```
+
+```q
+list: 10 20 30 40 50
+list 0
+10
+
+/ retrieve index element 0 from list
+
+/ alternative syntax
+/ written explicitly (functionally)
+
+list[0]
+10
+```
+```q
+/ indexing out of bounds
+
+list[11]
+0N
+
+/ does not throw out of bounds exception
+/ returns a null value of same type
+/ 0N = because list is longs
+
+z:`ibm`msft`goog
+z[10]
+`
+
+/ null sym
+
+y: 1 2 3e
+y[10]
+0Ne
+
+/ null real
+```
 
 
