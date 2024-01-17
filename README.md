@@ -3387,5 +3387,306 @@ ssr[s;"o";"s"]
 "tsrsnts sntaris"
 ```
 
+String Manipulation Exercises
+
+```q
+/ 1. Return tomorrow's date as a string
+
+string .z.d  + 1
+```
+
+```q
+/ 2. Show the various ways to get "o" from "hello"
+
+"hello" 4
+"hello" [4]
+last "hello" / use "last" to retrieve last char in string
+
+/ ss method
+"hello" ss "o" / find index position of "o"
+4
+"hello" "hello" ss "o" / then feed back into "hello"
+"o"
+
+/ equality method
+where "hello" = "o" / find index position of "o"
+4
+"hello" where "hello" = "o" / then feed back into "hello"
+"o"
+```
+
+```q
+/ 3. Find the index positions of blank spaces in "kdb plus is fun"
+
+/ method 1
+"kdb plus is fun" ss " "
+3 8 11 / uses ss to retrieve the blank index positions
+
+/ method 2 (null method)
+/ a null character is " "
+
+null "kdb plus is fun"
+000100001001000b / returns boolean string of nulls = 1
+
+where null "kdb plus is fun"
+3 8 11
+
+/ where returns index position where null = 1
+```
+
+```q
+/ 4. Find the index positions of non-blank chars
+/ in "kdb plus is fun"
+
+where not null "kdb plus is fun"
+0 1 2 4 5 6 7 9 10 12 13 14
+
+/ where null = when nulls = 1
+/ so where NOT null = non blanks = null = 0
+```
+
+```q
+/ 5. Using the string "kdb plus is fun"
+/ replace the blank spaces with "_"
+
+ssr["kdb plus is fun";" ";"_"]
+"kdb_plus_is_fun"
+```
+
+```q
+/ 6. Return a 4 item list of strings "kdb plus is fun"
+
+vs[" ";"kdb plus is fun"]
+("kdb";"plus";"is";"fun")
+
+/ vector string splitting on " "
+```
+
+```q
+/ 7. Capitalize on the first letter of every word
+/ and replace the _ with spaces in "kdb_plus_is_fun"
+
+/ a. first, find the index position of spaces ("_")
+where "kdb_plus_is_fun" = "_"
+3 8 11
+/ index position of _
+
+/ b. second, find the index position 1 char after the _
+1+ where "kdb_plus_is_fun"
+4 9 12
+/ index position 1 char AFTER the _
+
+/ c. third, find index position of first char
+0, 1+ where "kdb_plus_is_fun"
+0 4 9 12
+/ first index pos + index pos after the _
+
+/ d. use @ operator to capitalize the first chars
+@["kdb_plus_is_fun"; 0, 1+ where "kdb_plus_is_fun" = "_"; upper]
+"Kdb_Plus_Is_Fun"
+/ @ operator; first arg = original string
+/ second arg = index positions to target
+/ last arg = upper function
+
+/ e. save outcome as new variable
+
+a: @["kdb_plus_is_fun"; 0, 1+ where "kdb_plus_is_fun" = "_"; upper]
+
+/ f. then simply use ssr on this newly saved variable
+
+ssr[a; "_"; " "]
+"Kdb Plus Is Fun"
+```
+
+```q
+/ 8. Remove excess spaces at the end, but keep the space before: "   Abc         "
+
+rtrim "   Abc         "
+"   Abc"
+```
+
+```q
+/ 9. Create the string "NEWRY" from the string "     newry    " using string manipulation
+
+upper trim "     newry    "
+NEWRY
+
+/ first trim, then apply the UPPER function
+```
+
+```q
+/ 10. Using an in-built operator, find out if the following strings are all capitalized:
+
+"a"
+"aaB"
+"BBB"
+"ABC_123"
+
+"a"~upper "a"
+0b / false
+
+"aaB"~upper "aaB"
+0b / false
+
+"BBB"~upper "BBB"
+1b / true
+
+"ABC_123"~upper "ABC_123"
+1b / true
+```
+
+```q
+/ 11. Using an in-built operator, find out if the following strings STARTS with "abc"
+
+"abcdef"
+"bcdabcef"
+"kdb"
+
+"abcdef" like "abc"
+1b
+
+"bcdabcef" like "abc"
+0b
+
+"kdb" like "abc"
+0b
+```
+
+```q
+/ 12. Using an in-built operator, find out if the following strings CONTAIN the pattern "abc"
+
+"abcdef"
+"bcdabcef"
+"kdb"
+
+"abcdef" like "*abc*"
+1b / note has wildcard * on either side
+
+"bcdabcef" like "*abc*"
+1b
+
+"kdb" like "*abc*"
+0b
+```
+
+```q
+/ 13. Using an in-built operator, find out if the following strings contain numbers:
+
+"abc1def"
+"bcdabcef"
+"kdb4.0"
+
+"abc1def" like "*[0-9]*"
+1b
+
+"bcdabcef" like "*[0-9]*"
+0b
+
+"kdb4.0" like "*[0-9]*"
+1b
+
+/ checks if string contains any numbers [0-9]
+/ the wildcard * before or after the number char
+
+/ string comparison way
+
+.Q.n / utility function that stores all numbers
+"0123456789"
+
+any "abc1def" in .Q.n
+1b
+
+```
+
+```q
+/ 14. Check if string starts with a capital letter and finish with a number
+
+"Abc1def" like "[A-Z]*[0-9]"
+0b / so the * acts as a wildcard for any middle chars
+```
+
+```q
+/ 15. Given s: ("wK<<<De<<< arB33e &:n";"Ia<<< quSe<<<sGREATt!")
+/ apply the following manipulations:
+/ (hint - above is a list of strings aka nested string)
+
+/ 15b. Replace all occurrences of "&:" with "o"
+
+ssr[ ;"&:"; "o"] each s
+"wK<<<De<<< arB33e on"
+"Ia<<< quSe<<<sGREATt!"
+
+/ leave first arg BLANK
+/ since this is a nested list
+/ instead, use EACH adverb
+/ to apply ssr to each element in nested list
+
+/ 15c. Remove all occurences of "<<<"
+
+ssr[ ;"<<<"; ""] each s
+"wKDe arB33e on"
+"Ia quSesGREATt!"
+
+/ use SSR to replace <<< with "" (nothing aka delete)
+/ leave first arg BLANK (since nested list)
+/ and use EACH to apply ssr to each nested element
+
+/ 15d. Remove all capital letters
+/ (hint - NOT make everything lowercase, but REMOVE the lower case ones)
+
+.Q.A / stores the capital letters
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+except[ ;.Q.A] each s
+"we ar33e on"
+"a quest!"
+
+/ use the EXCEPT keyword
+/ to retrieve all chars (ex numbers)
+/ for EACH of the nested elements
+
+/ 15e. Remove all numbers
+
+.Q.n / stores all numbers
+"0123456789"
+
+except[ ;.Q.n] each s
+"we are on"
+"a quest!"
+
+/ uses EXCEPT function
+/ to retireve all chars (ex numbers)
+/ for EACH nested elements
+
+/ 15f. Turn the nested list into a single string
+
+s:("wK<<<De<<< arB33e &:n";"Ia<<< quSe<<<sGREATt!")
+" " sv s
+
+"we are on a quest!"
+
+/ uses first arg " "
+/ as delimiter
+/ essentially help you combine the nested list
+/ into 1 bigger list
+```
+
+```q
+/ 16. Split the string "aa/bb/cc/dd" where the "/" occurs, to produce a 4 item list 
+
+vs["/" vs "aa/bb/cc/dd"]
+"aa"
+"bb"
+"cc"
+"dd"
+
+/ vs breaks down a string into smaller strings
+/ first arg = delimiter
+
+/ alternative syntax:
+
+("/" vs "aa/bb/cc/dd")
+```
+
 
 
