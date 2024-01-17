@@ -9,6 +9,7 @@
 6. [Atoms & Primitives](#atoms)
 7. [Lists](#Lists)
 8. [String Manipulation](#string)
+9. [Casting](#casting)
 
 
 <hr>
@@ -3687,6 +3688,65 @@ vs["/" vs "aa/bb/cc/dd"]
 
 ("/" vs "aa/bb/cc/dd")
 ```
+
+<a name="casting"></a>
+### 🔴 [9.0] Casting
+[Top](#top)
+
+```q
+/ typically the more granular type prevails if you add 2 types together
+
+/ time + timespan
+
+09:00:00 + 2D00:00:00
+2D09:00:00.000000000
+
+/ becomes datetime, since datetime is more granular
+```
+
+```q
+/ Show 3 ways to convert longs to floats
+
+x: 10 20 30
+
+`float$x / 1 symbol name - functional form $[`float;x]
+"f"$x    / 2 character value = functional form $["f";x]
+9h$x     / 3 short value - functional form $[9h;x]
+```
+temporal datatypes
+
+```q
+/ temporal datatypes
+
+`long$.z.d / number of dates from 1 jan 2000
+8781
+
+`long$09:30:00.000 / number of miliseconds from midnight
+34200000
+
+`long$.z.d + 09:30:00.000 / number of miliseconds from midnight 1 jan 2020
+758712600000000000
+```
+```q
+/ casting time to minute rounds down to nearest minute
+`minute$17:55.01 / rounds down to nearest minute
+17:55u
+
+`minute$17:55.59
+17:55u
+
+/ there's no hour type in kdb, but rounds to nearest int
+`hh$17:55:59 / no hour type, so it casts to an int
+17i
+
+/ i = int datatype
+```
+
+
+
+
+
+
 
 
 
