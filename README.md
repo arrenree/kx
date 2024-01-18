@@ -3887,3 +3887,87 @@ string `IBM`GOOG`MSFT
 / note, need capital T for current time zone
 ```
 
+```q
+/ 7. Split the string "casting all day every day" to a list of symbols: `casting`all`day`every`day
+
+" " vs "casting all day every day"
+"casting"
+"all"
+"day"
+"every"
+"day"
+
+/ first use vs function to separate string into a list of strings
+/ concatenates on the " " blank
+
+then cast this list of strings to a sym
+
+`$" " vs "casting all day every day"
+`casting`all`day`every`day
+
+/ done by casting to a backtick
+```
+
+```q
+/ 8. Cast each item in the general list (0i; 45f; .z.p; 1b)
+/ to a list of symbols: `0`45`2020.07.17D14:01:22.808442000`1
+
+
+`$string (0i; 45f; .z.p; 1b)
+`0`45`2024.01.18D06:59:25.008369419`1
+
+/ ONLY strings can be cast to a sym
+/ so need to first cast mixed list to a string
+/ then cast string to sym
+```
+
+```q
+/ 9. Given the mixed list, cast the second element to a sym:
+/ strings:("string1"; "symbol"; "string2"; "string3")
+
+/ a. use indexing to retrieve second element
+
+strings[1]
+"symbol"
+
+/ b. cast it to a sym, 
+
+`$strings[1]
+`symbol
+
+/ c. then "reassign it" as the second variable
+
+strings[1]: `$strings[1]
+
+/ d. now when you retrieve the mixed list:
+
+strings
+"string1"
+`symbol
+"string2"
+"string3
+```
+```q
+/ dates and times are represented as integers "under the hood"
+/ which means they have designated 0 or initial values
+
+/ 10. What are the starting values of the following types:
+
+/ Byte
+"x"$0
+0x00
+
+/ Date
+"d"$0
+2000.01.01
+
+/ Time
+"t"$0
+00:00:00.000
+
+/ Timestamp
+"p"$0 //timestamp combines date and time 
+2000.01.01D00:00:00.000000000
+```
+
+
