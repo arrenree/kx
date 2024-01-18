@@ -3727,6 +3727,7 @@ temporal datatypes
 `long$.z.d + 09:30:00.000 / number of miliseconds from midnight 1 jan 2020
 758712600000000000
 ```
+
 ```q
 / casting time to minute rounds down to nearest minute
 `minute$17:55.01 / rounds down to nearest minute
@@ -3742,11 +3743,147 @@ temporal datatypes
 / i = int datatype
 ```
 
+```q
+/ 1. Cast 16:30:00 to an int
 
+"i"$16:30:00
+59400i / trailing i = int
+```
+```q
+/ 2. Cast 16:30:00 to a float
 
+"f"$16:30:00
+59400f / trailing f = float
 
+```
 
+```q
+/ 3. Cast 16:30:00 to a minute
 
+`minute$16:30:00
+16:30
+```
 
+```q
+/ 4. Cast 16:30:00 to a second
 
+`second$16:30:00
+16:30:00 
+```
+
+```q
+/ 5. Cast the mixed list to a string
+/ a:(1000;2000i;2020.01.01;.z.t)
+
+string A
+"1000"
+"2000"
+"2020.01.01"
+"07:34:54.218"
+```
+
+```q
+/ to cast a string to a float, need to use capital "F"
+
+"F"$"4222.001"
+4222.001
+```
+
+```q
+/ 6. Cast a string to a long
+
+"J" $ "1000"
+1000
+
+/ numbers are longs in kdb
+```
+
+```q
+/ 7. Cast a string to a real
+
+"E" $ "3283.192"
+3283.192e
+
+/ reals are trailing e
+```
+
+```q
+/ 8. Cast a string to a time
+
+"T" $ "09.10:15.888"
+09:10:15.888
+```
+
+```q
+/ 9. Cast a string "2020.01.01" to a date
+
+"D" $ "2020.001.01"
+2020.01.01
+```
+
+Casting to a sym
+
+```q
+/ there is only ONE datatype that can be cast to a sym
+/ and that is a STRING
+/ need to first cast to a STRING
+/ then cast to a sym
+```
+
+```q
+/ 1. Cast today's date to a sym
+
+`$ string .z.d
+`2024.01.16
+```
+
+```q
+/ 2. Cast 3.14 to a sym
+
+`$ string 3.14
+`3.14
+```
+
+```q
+/ 3. Cast `IBM`GOOG`MSFT to a string
+
+string `IBM`GOOG`MSFT
+("IBM";"GOOG";"MSFT")
+```
+
+```q
+/ 4. Cast `0`1`2`3 to a string
+"J" $ string `0`1`2`3
+0 1 2 3
+```
+
+```q
+/ 5. Extract month, week, and year from date 2015.06.03
+
+`month$2015.06.03
+2015.06m / trailing m = month
+
+`week$ 2015.06.03
+2015.06.01 / week
+
+`year$2015.06.03
+2015.i
+
+/ no "year" datatype, so when casting to year, it becomes an int
+```
+
+```q
+/ 6. Get the current minute, second, hour
+
+`uu$.z.T / cast to minute
+0i
+
+`ss$.z.T / cast to second
+59i
+
+`hh$.z.T / cast to hour
+10i
+
+/ note, need capital T for current time zone
+```
 
