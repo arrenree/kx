@@ -10,6 +10,7 @@
 7. [Lists](#Lists)
 8. [String Manipulation](#string)
 9. [Casting](#casting)
+10. [Functions](#func)
 
 
 <hr>
@@ -3968,6 +3969,226 @@ strings
 / Timestamp
 "p"$0 //timestamp combines date and time 
 2000.01.01D00:00:00.000000000
+```
+
+<a name="func"></a>
+### 🔴 [10.0] Functions
+[Top](#top)
+
+
+```q
+/ a function is a sequence of expressions which are evaluated
+/ input parameters are known as function valence (can be 0 or up to 8)
+/ function logic = code you write to make the function do what you want
+/ function return = output returned by function (can also be nothing)
+
+/ when you APPLY a function, it causes expressions to be evaluated in sequence
+/ substituting the value of each argument for corresponding input parameters
+```
+
+
+```q
+/ different ways to pass parameters to a function:
+
+3 % 5       //infix notation 
+%[3;5]      //functional notation
+%[ ;5] 3     //eliding the first argument to pass the second 
+%[3][5]     //projecting over the first argument and then calling with the second explicity 
+%[3] 5      //projecting over the first argument and then applying implicity to the RHS value of 5
+```
+
+```q
+/ functional way of calling:
+
+divide:{[numerator;denominator] numerator%denominator} 
+
+divide[3;5]    //functionally calling
+divide[3][5]
+divide[3] 5 
+divide[;5] 3
+divide[;5][3]
+/ the above all work!
+
+3 divide 5     //infix calling throws an error
+```
+
+```q
+/ function valence = number of arguments or parameters
+
+/ 2 parameters
++[3;4]
+
+/ 1 parameter
++[3;]
+
++[3;4;1]
+error
+
+/ error because binary operation aka dyadic function
+/ single parameter = monadic function
+```
+
+```q
+/ monadic function (1 arg)
+
+neg 1 2 3
+-1 -2 -3
+
+/ niladic function (no arg)
+
+.Q.gf[]
+0
+```
+```q
+/ what is the difference between these three:
+
+neg [1 2 3]
+neg 1 2 3
+neg [1;2;3]
+
+/ first 2 are lists; would apply neg operator on the vector
+/ 3rd one = error cuz semi colon delimits the function parameters, passing 3 input parameters
+```
+
+```q
+/ 1. Create a function called range that takes 1 parameter but doesn't do anything
+
+range: {[1] }
+
+/ function runs, but doesn't return anything
+```
+
+```q
+/ 2. Create a function that converts farenheit to celcius
+/ arg = farenheit
+/ formula is F-32 * 5/9
+
+FtoC: { [F] offset: F-32; offset*5/9}
+FtoC [70]
+21.11
+
+/ arg = F
+/ can have multiple expressions (in this case, 2)
+```
+
+```q
+/ 3. Use semicolon to STOP output of above function
+
+FtoC: { [F] offset: F-32; offset*5/9;}
+
+/ since we added the extra ; at the end
+/ function will run, but not return any results
+```
+
+```q
+/ 4. Use colon : to force return first expression
+
+FtoC: { [F] :offset: F-32; offset*5/9;}
+FtoC[70]
+38
+
+/ the : forces return before the second expression
+/ the ; at the end of the last expression halts return
+```
+
+```q
+/ 5. Create a function called range that calculates the range of numbers in a list
+/ 1 input
+/ for ex, calling range on -10 20 30 40 50 should return 60
+
+range:{ [x] max [x] - min x}
+
+/ max retrieves the max number in a list
+/ min retrieves min nuimber in list
+/ difference is the range
+```
+
+```q
+/ 6. Save the above function to a variable, then force return that variable
+
+range:{ [x] a: max [x] - min x; :a }
+
+/ so saved first expression to variable a
+/ second expression gets printed
+```
+
+```q
+/ Single input function with 4 expressions:
+
+sumStats:{[l]
+    countL:count l; //calculating number of elements in list 
+    minL:min l; //calculating min of list 
+    maxL:max l; //calculating max of list
+    avgL:avg l; //calculating average of list
+    :(countL;minL;maxL;avgL) //using force return 
+ }
+```
+
+```q
+/ explicit parameters are defined within square brackets in function [ ]
+
+f: { [a;b;c] a + b + c}
+/ a, b, c are explicit parameters
+
+/ implicit parameters don't need to be defined
+/ they are x, y, and z
+
+f: { x + y + z }
+/ if you are only using 3 parameters, don't need to define them
+```
+
+```q
+/ 1. Create a monadic function to find all odd numbers in a list
+/ then multiply them by 10
+
+/ mod = whatever is leftover after division
+/ so 3 mod 2 = 1
+/ if mod = 0 = even
+/ if mod = non zero = odd
+
+x mod 2 / x = list
+1 2 3 4 5 mod 2
+1 0 1 0 1
+
+where 1=1 2 3 4 5 mod 2
+0 2 4 / find where 
+
+/ retrieve index position where mod = 1
+/ aka where there is LEFTOVER after division
+/ aka ODD numbers
+
+1 2 3 4 5 where 1=1 2 3 4 5 mod 2
+1 3 5
+
+/ if you feed back index positions back to orig list
+/ retrieves values where true
+/ aka, ODD
+
+/ can save the output to variable called odd
+odd: 1 2 3 4 5 where 1=1 2 3 4 5 mod 2
+
+/ then form second expression (*10)
+odd: 1 2 3 4 5 where 1=1 2 3 4 5 mod 2; odd * 10
+10 30 50
+
+/ re-write as a function
+
+f: { [x] odd: x where 1=x mod 2; odd*10}
+f[1 2 3 4 5]
+10 30 50
+```
+
+```q
+/ 2. Re-write above function, but include the even numbers
+/ but dont multiply them
+
+f: { [x] odd: where 1=x mod 2; @[x;odd;*;10]}
+f[1 2 3 4]
+10 2 30 4
+
+/ note - where will retrieve index position
+/ we took out the feeding back into original list
+/ because we want the index position
 ```
 
 
