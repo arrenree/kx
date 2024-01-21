@@ -4190,5 +4190,112 @@ f[1 2 3 4]
 / we took out the feeding back into original list
 / because we want the index position
 ```
+Function Scope
+
+```q
+/ Function scope refers to the "view" of the variables
+/ that are accessible to a function during it's execution.
+
+/ local variables
+
+/ variables passed within function
+
+f: {[localv] }
+
+/ localv is a local variable that only exists within the function
+```
+
+```q
+/ Calc the circumference of a circle
+
+c: {[r] pi: 3.14; 2*pi*r}
+
+/ pi is a local defined variable
+```
+
+```q
+/ When a function calls for a variable, it first "looks" locally,
+/ and then if the variable can't be found in local scope, the function "looks" globally.
+/ If the variable can't be found in either scope, then the function will error.
+
+/ use :: to define local variables as global
+
+
+b:6 / set b:6 as GLOBAL variable
+f:{b::7; x*b} / assign b:7 as GLOBAL variable 
+f[10]
+70
+```
+```q
+
+/ 
+local vs global variables
+
+b:6
+/ set b:6 as GLOBAL variable
+                   
+f:{b:42; b::x; b}
+
+/ set b:42 as LOCAL variable.
+/ this overrides 6 as variable
+
+/ what happens when you call f[98]
+
+f[98]
+42
+
+/ since you call function
+/ function will take LOCAL variable
+/ aka b: 42
+
+/ what happens you simply call b (outside of function)
+
+b
+6
+/ global variable is still 6
+```
+
+```q
+/ For the above example, use SET to define the global variable
+/ from inside the function call instead of using ::
+
+b:6                  
+/ resetting b:6 globally
+
+f:{b:42; `b set x; b}
+/ setting b:42 locally, setting b set x globally and doesn't overwrite the local variable
+
+f[98]
+42
+
+/ when you call function, b is still local variable; so 42
+```
+Projections
+
+```q
+/ 1. to create a projection where the second argument is held constant, simply omit the first argument
+
+half:%[ ;2]
+half 3
+1.5
+```
+```q
+/ 2. Create a projection called modSeven that calculates the input modulo 7
+
+modSeven:mod[ ;7]
+modSeven 15
+1
+
+```
+
+```q
+/ 3. Using the projection modSeven, apply it to the series 0-10
+
+modSeven til 11
+0 1 2 3 4 5 6 0 1 2 3
+
+```
+
+
 
 
