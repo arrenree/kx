@@ -4476,11 +4476,33 @@ f[",";"SJF*"; "JPM, 100, 4.5; test string"]
 ```
 
 ```q
-/ 8. 
+/ 8. Create a dyadic function that accepts a first and last name (as syms)
+/ and returns a single sym including a space between the names
 
+string `john`allen / first convert list of syms to list of strings
+("john";"allen")
 
+" " sv ("john";"allen") / use sv to create bigger string, using " "  to connect
+"john allen"
 
+`$"john allen" / then cast longer string to a sym
+`john allen
 
+f:{`$" " sv (x;y)}
+f[`john;`allen]
+`john allen
+
+```
+
+```q
+/ 9. Create a monadic function that takes a list of numbers and converts all to type longs
+
+f:{`long$x}
+f 4.1 4.3 4.5
+4 4 5
+
+/ use `long to cast to longs
+```
 
 
 
