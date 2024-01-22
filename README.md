@@ -4363,6 +4363,128 @@ modSeven til 11
 
 ```
 
+Functions Problem Set
+
+```q
+/ 1. Create a monadic function that returns a boolean indicating
+/ whether argument is a whole number
+
+/ a whole number is the following types
+
+short (-5h)
+int (-6h)
+long (-7h)
+
+whole:{ type [x] in -5 -6 -7h}
+whole[4h]
+1b
+
+whole[4.2]
+0b
+
+/ use in keyword to check if type = whole numbers
+```
+
+```q
+/ 2. Create a dyadic function that takes list and a long as 2 arguments
+/ and returns items that are wholly divisible by long
+
+divide:{ [x;y] x where 0=x mod y}
+divide[2 3 4 5;5]
+5
+
+/ use mod to check if remainders exist after division
+```
+
+```q
+/ 3. Create a function that rounds down number to nearest whole number
+
+rounddown:{floor x}
+rounddown[7.8]
+7
+
+/ use FLOOR keyword to round down to whole number
+```
+
+```q
+/ 4. Create a monadic function that accepts a list and replaces last item with 99
+
+replace:{ @[x;count [x]-1;:;99]}
+replace[1 2 3 4]
+
+/ use @ function for amending lists
+/ first arg = x = list (input)
+/ second arg = index position
+/ third arg = action = assign :
+/ last arg = new value 99
+```
+
+```q
+/ 5. Create a monadic function that accepts a list and returns list with
+/ second item doubled
+
+double:{ @[x;1;2*]}
+double[1 2 3 4]
+1 4 3 4
+
+/ use @ apply function to amend list
+/ first arg = x = list (input)
+/ second arg = index position
+/ third arg = action (2*)
+
+/ alternative syntax
+
+double:{ @[x;1;{2*x}]}
+
+/ notice you use brackets { } inside the apply [ ]
+```
+
+```q
+/ 6. Create a monadic function that accepts an M x N matrix
+/ and returns a N x M matrix
+
+transpose:{flip x}
+transpose(1 2 3 4; 10 20 30 40; 100 200 300 400)
+1 10 100
+2 20 200
+3 30 300
+4 40 400
+
+/ you simply flip the matrix
+/ note when calling function with matrix, use parenthesis ( )  instead of [ ]
+```
+
+```q
+/ 7. Create a triadic function that accepts the following arguments:
+/ arg1: a delimiter string, aka "|" or ","
+/ arg2: datatype to be cast aka "SJF" would cast to sym, long, float
+/ arg 3: a string ("JPM, 100, 4.5, test string")
+
+/ and returns a list cast to desired type
+
+f:{[x;y;z] y$x vs z}
+f[",";"SJF*"; "JPM, 100, 4.5; test string"]
+`JPM
+100
+4.5
+"test string"
+
+/ so z = string
+/ vs function breaks down a string via the delimiter
+/ so breaks down z string
+/ then casts to y datatype
+```
+
+```q
+/ 8. 
+
+
+
+
+
+
+
+
 
 
 
