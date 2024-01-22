@@ -3976,9 +3976,11 @@ strings
 [Top](#top)
 
 
+What are Functions
+
 ```q
-/ a function is a sequence of expressions which are evaluated
-/ input parameters are known as function valence (can be 0 or up to 8)
+/ a function = a sequence of expressions which are evaluated
+/ function valence = the number of input parameters (can be 0 or up to 8)
 / function logic = code you write to make the function do what you want
 / function return = output returned by function (can also be nothing)
 
@@ -3986,31 +3988,7 @@ strings
 / substituting the value of each argument for corresponding input parameters
 ```
 
-
-```q
-/ different ways to pass parameters to a function:
-
-3 % 5       //infix notation 
-%[3;5]      //functional notation
-%[ ;5] 3     //eliding the first argument to pass the second 
-%[3][5]     //projecting over the first argument and then calling with the second explicity 
-%[3] 5      //projecting over the first argument and then applying implicity to the RHS value of 5
-```
-
-```q
-/ functional way of calling:
-
-divide:{[numerator;denominator] numerator%denominator} 
-
-divide[3;5]    //functionally calling
-divide[3][5]
-divide[3] 5 
-divide[;5] 3
-divide[;5][3]
-/ the above all work!
-
-3 divide 5     //infix calling throws an error
-```
+Function Valence
 
 ```q
 / function valence = number of arguments or parameters
@@ -4039,16 +4017,54 @@ neg 1 2 3
 .Q.gf[]
 0
 ```
+
+Different Ways to Pass parameters to Functions
+
 ```q
-/ what is the difference between these three:
+/ different ways to pass parameters to a function:
 
-neg [1 2 3]
-neg 1 2 3
-neg [1;2;3]
-
-/ first 2 are lists; would apply neg operator on the vector
-/ 3rd one = error cuz semi colon delimits the function parameters, passing 3 input parameters
+3 % 5       / infix notation 
+%[3;5]      / functional notation
+%[ ;5] 3    / eliding the first argument to pass the second 
+%[3][5]     / projecting over the first argument and then calling with the second explicity 
+%[3] 5      / projecting over the first argument and then applying implicity to the RHS value of 5
 ```
+
+Different Ways to Call a Function
+
+```q
+/ suppose you want to call using inputs 3 and 5
+
+divide:{[numerator;denominator] numerator % denominator} 
+
+divide[3;5]    / functionally calling
+divide[3][5]
+divide[3] 5 
+divide[;5] 3
+divide[;5][3]
+
+/ the above all work!
+
+3 divide 5     
+error
+
+/ infix calling throws an error
+/ this syntax is wrong
+```
+
+```q
+/ Single input function with 4 expressions:
+
+sumStats:{[l]
+    countL:count l; 
+    minL:min l; 
+    maxL:max l; 
+    avgL:avg l; 
+    :(countL;minL;maxL;avgL) / using force return 
+ }
+```
+
+Function Problem Set 1
 
 ```q
 / 1. Create a function called range that takes 1 parameter but doesn't do anything
@@ -4063,8 +4079,8 @@ range: {[1] }
 / arg = farenheit
 / formula is F-32 * 5/9
 
-FtoC: { [F] offset: F-32; offset*5/9}
-FtoC [70]
+FtoC: {[F] offset: F-32; offset*5/9}
+FtoC[70]
 21.11
 
 / arg = F
@@ -4092,8 +4108,8 @@ FtoC[70]
 ```
 
 ```q
-/ 5. Create a function called range that calculates the range of numbers in a list
-/ 1 input
+/ 5. Create a function called range that accepts 1 input
+/ and calculates the range of numbers in a list
 / for ex, calling range on -10 20 30 40 50 should return 60
 
 range:{ [x] max [x] - min x}
@@ -4113,29 +4129,34 @@ range:{ [x] a: max [x] - min x; :a }
 ```
 
 ```q
-/ Single input function with 4 expressions:
+/ 7. What is the difference between these three:
 
-sumStats:{[l]
-    countL:count l; //calculating number of elements in list 
-    minL:min l; //calculating min of list 
-    maxL:max l; //calculating max of list
-    avgL:avg l; //calculating average of list
-    :(countL;minL;maxL;avgL) //using force return 
- }
+neg [1 2 3]
+neg 1 2 3
+neg [1;2;3]
+
+/ first 2 are lists; would apply neg operator on the vector
+/ 3rd one = error cuz semi colon delimits the function parameters, passing 3 input parameters
 ```
 
+Explicit vs Implicit Parameters/Arguments
+
 ```q
-/ explicit parameters are defined within square brackets in function [ ]
+/ Explicit arguments are defined within square brackets in function [ ]
 
 f: { [a;b;c] a + b + c}
 / a, b, c are explicit parameters
+```
 
-/ implicit parameters don't need to be defined
+```q
+/ Implicit arguments don't need to be defined
 / they are x, y, and z
 
 f: { x + y + z }
 / if you are only using 3 parameters, don't need to define them
 ```
+
+Function Problem Set 2
 
 ```q
 / 1. Create a monadic function to find all odd numbers in a list
@@ -4190,15 +4211,19 @@ f[1 2 3 4]
 / we took out the feeding back into original list
 / because we want the index position
 ```
-Function Scope
+
+Function Scope (Local vs Global Variables)
 
 ```q
 / Function scope refers to the "view" of the variables
 / that are accessible to a function during it's execution.
 
-/ local variables
+/ local scope = local variables
+/ local variables = variables passed WITHIN function
 
-/ variables passed within function
+/ When a function calls for a variable, it first "looks" locally,
+/ and then if the variable can't be found in local scope, the function "looks" globally.
+/ If the variable can't be found in either scope, then the function will error.
 
 f: {[localv] }
 
@@ -4206,30 +4231,36 @@ f: {[localv] }
 ```
 
 ```q
-/ Calc the circumference of a circle
+/ 1. Calc the circumference of a circle
 
 c: {[r] pi: 3.14; 2*pi*r}
 
 / pi is a local defined variable
 ```
 
-```q
-/ When a function calls for a variable, it first "looks" locally,
-/ and then if the variable can't be found in local scope, the function "looks" globally.
-/ If the variable can't be found in either scope, then the function will error.
+Defining local variables as global using ::
 
+```q
 / use :: to define local variables as global
 
+b:6
+/ set b:6 as GLOBAL variable
+/ notice its NOT within a function
 
-b:6 / set b:6 as GLOBAL variable
-f:{b::7; x*b} / assign b:7 as GLOBAL variable 
+f:{b::7; x*b}
 f[10]
 70
-```
-```q
 
-/ 
-local vs global variables
+/ inside the function, b::7 is a local variable, but is being set
+/ as global variable
+/ so when you call the function with 10
+/ b = 7, hence 7 *10 = 70
+```
+
+Local vs Global Variable Problem Set
+
+```q
+/ 1. Example 1
 
 b:6
 / set b:6 as GLOBAL variable
