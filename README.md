@@ -4301,15 +4301,43 @@ f[98]
 
 / when you call function, b is still local variable; so 42
 ```
+
 Projections
 
 ```q
-/ 1. to create a projection where the second argument is held constant, simply omit the first argument
+/ A projection is created by passing a function less than its total req arguments
+/ used when we want to keep one or more arguments CONSTANT
+
+/ lets create an addition projection
+
+add: 2+
+
+/ normally, addition requires 2 inputs
+/ but we are only using 1 here
+/ so binds first input to 2
+
+add 1
+3
+
+/ since we bound the first input to 2
+/ the new output = 3
+```
+
+Projection Problem Set
+
+```
+/ 1. To create a projection where the second argument is held constant, simply omit the first argument
 
 half:%[ ;2]
 half 3
 1.5
+
+/ % requires 2 inputs
+/ left first arg empty
+/ so binds second arg as 2
+/ then use that as projection to calc new function
 ```
+
 ```q
 / 2. Create a projection called modSeven that calculates the input modulo 7
 
@@ -4317,6 +4345,11 @@ modSeven:mod[ ;7]
 modSeven 15
 1
 
+/ mod = whatever leftover after division
+/ aka remainder after % 7
+/ mod takes 2 arguments
+/ left first arg blank
+/ binds second arg = 7
 ```
 
 ```q
@@ -4324,6 +4357,9 @@ modSeven 15
 
 modSeven til 11
 0 1 2 3 4 5 6 0 1 2 3
+
+/ first arg for modSeven = blank
+/ your list of 0-10 can feed in
 
 ```
 
