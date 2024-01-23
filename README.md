@@ -4685,16 +4685,208 @@ each right /:
 / adds 2 3 to each element of 3 4 5
 ```
 
+```q
+/ join each right (,/:)
 
+2 3 ,/: 3 4 5
+2 3 3
+2 3 4
+2 3 5
 
+/ joins 2 3 to each item to the right
+```
 
+```q
+/ multiply each right (*/:)
 
+2 3 */: 3 4 5
+6 9
+8 12
+10 15
 
+/ multiplies 2 3 to each item to the right
+```
 
+each left \:
 
+```q
+/ takes entire right to EACH item in left
 
+2 3 +\: 3 4 5
+5 6 8
+6 7 8
 
+/ takes 3 4 5 + each item of left
+```
 
+in 
+
+```
+/ check if 3 is in each of the nested list (1;1 4; 2 3; 3 5 6)
+
+3 in'(1; 1 4; 2 3; 3 5 6)
+0011b
+
+/ checks if 3 is in each of the nested lists
+```
+
+```q
+/ check if 3 and 4 are in each of the nested list (1; 1 4; 2 3; 3 5 6)
+
+3 4 in/: (1; 1 4; 2 3; 3 5 6)
+00b
+01b
+10b
+10b
+
+/ combines IN with each right
+/ check if 3 4 are in each of the right (nested list)
+```
+
+Like each left (string iterators)
+
+```q
+/ LIKE is used to compare strings with other strings/symbols
+
+like["IBM.OQ";"IBM*]
+1b
+
+/ or alternative syntax
+"IBM.OQ" like "IBM*"
+
+/ does the input string begin with "IBM" - followed by anything (the *)
+```
+
+```q
+/ 1. using LIKE + each left, check if "kdb+" appears in any of the elements in nested list
+
+a:("kdb+ is fast"; "kdb+ is cool"; "q is easy")
+a like \: "*kdb+*"
+110b
+
+/ the * before and after = wildcard (can be anything)
+/ like keyword checks if target string appears in right hand string
+```
+
+string pattern checks
+
+```q
+ids:("A123";"A234";"B123";"B234")
+patterns:("A";"*123*")
+
+/ so the patterns you are after is string A followed by wildcard
+/ and wildcard followed by 123
+
+/ check if any of the patterns appear in any of the id nested strings
+
+patternCheck: ids like/: patterns
+1100b
+1010b
+
+/ equilvalent of:
+("A";"*123*") like/: ("A123";"A234";"B123";"B234")
+
+/ so checks entire left to EACH of the right nested strings
+```
+
+```q
+/ did any of the ids match the patterns?
+
+any patternCheck?
+1110b
+/ 1 = true = patterns matched
+
+/ use where to discover index position
+/ then feed back into original id list
+/ to retrieve the items that match
+
+ids where any patternCheck
+"A123"
+"A234"
+"B123"
+
+/ so these are the values in id that match your pattern
+```
+
+```q
+/ checking for multiple string patterns in a table is very common
+/ syntax is: any stringCol like/: pattern
+
+```
+matrix
+
+```q
+/ 1. create a multiplication matrix using list 0 1 2 3 4
+/ entry should look like i * j
+
+row: til 5
+0 1 2 3 4
+
+row*/:row / multiple entire left row by each of right row
+
+0 0 0 0 0
+0 1 2 3 4
+0 2 4 6 8
+0 3 6 9 12
+0 4 8 12 16
+
+/ 0 1 2 3 4 * 0
+/ 0 1 2 3 4 * 1
+/ 0 1 2 3 4 * 2
+/ 0 1 2 3 4 * 3
+/ 0 1 2 3 4 * 4
+```
+each prior
+
+```q
+/ each prior ': or keyword prior applies the function to adjacent pair of items in list
+
+0 +': 1 2 3
+1 3 5
+
+so think of it as:
+
+/ 0 + index position 0 (0 + 1)
+/ index position 0 + index position 1 (1 + 2)
+/ index position 1 + index position 2 (2 + 3)
+
+/ alternative syntax
+
++':[1 2 3]
+prior[+;1 2 3]
+```
+```q
+/ its common to use subtract - with this iterator
+/ since time series analysis usually helpful to know how something changed
+
+0 -': 1 2 3 4 6 8 10
+1 1 1 1 2 2 2
+
+/ subtracts index position with its prior index position 
+```
+
+Deltas
+
+```q
+/ this has become so common that kdb has a keyword called DELTAS
+
+deltas 1 2 3 4 6 8 10
+1 1 1 1 2 2 2
+
+/ so deltas = 0 -':
+```
+```q
+/ 1. Create function called myMax that will return max of 2 inputs
+/ use each prior (':) to return the pairwise rolling maximum across list
+
+myMax:{max x,y}
+myMax': [20 30 2 3 20 40 70]
+20 30 30 3 20 40 70
+
+/ so mymax takes just takes the max between 2 inputs (x and y)
+/ by using each prior, it compares each element at index position
+/ vs the previous element at the previous index position
+```
 
 
 
