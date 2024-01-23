@@ -11,6 +11,7 @@
 8. [String Manipulation](#string)
 9. [Casting](#casting)
 10. [Functions](#func)
+11. [Iterators](#iterators)
 
 
 <hr>
@@ -4503,6 +4504,194 @@ f 4.1 4.3 4.5
 
 / use `long to cast to longs
 ```
+
+
+<a name="iterators"></a>
+### 🔴 [11.0] Iterators
+[Top](#top)
+
+```q
+/ iterators replaces the use of loops commonly seen in coding
+/ modify's a function to iterate across every item in a list
+```
+
+Each
+
+```q
+/ used to apply a function to each item in a list
+/ useful in a nested list
+
+a: (1 2 3; 10 20i; 30 40 50f; 60)
+count a
+4 / four items in list
+
+count each a
+3 2 3 1 / how many elements are in each list
+```
+
+```q
+/ each will not work with multivalent functions
+/ only works for functions with 1 argument
+
+/ the IN keyword takes 2 inputs:
+
+3 in 1 2
+0b/ false
+```
+
+```q
+/ 1. Check if 3 is in (1; 1 2; 3 4)
+
+3 in each (1; 1 2; 3 4)
+error
+/ can't use each in a multivalent function (in requires 2 arguments)
+
+/ solution: project function "in" to a single input function
+/ by fixing the first parameter
+
+isthreein: 3 in
+/ create projection of in
+/ fixed first parameter as 3
+
+isthreein 2 3 4 5
+1b
+
+isthreein each (1; 1 2; 3 4)
+0011b
+/ now it works!
+```
+
+```q
+/ 2. Find the first element of a
+
+a: (1 2 3; 10 20i; 30 40 50f; 60)
+first a
+1 2 3
+
+/ use FIRST function to retrieve first element in mixed list
+```
+
+```q
+/ 3. Find the first element of each item in a (indexing wont work)
+
+a: (1 2 3; 10 20i; 30 40 50f; 60)
+first each a
+1 10i 30f 60
+
+/ 4. why can't you use indexing?
+
+a[ ;0] / syntax for retrieving index position 0
+error
+
+/ doesn't work because not every element within a is a list
+/ last element is an atom (60)
+/ you cannot index into an atomic value!
+```
+
+```q
+/ 5. using keyword WITHIN, create a projection to test if 5 is
+/ within each of the following ranges: (3 6; 4 8; 10 15)
+
+is5within: 5 within
+is5within each (3 6; 4 8; 10 15)
+110b
+
+/ first create projection of 5 within
+/ then use function + each on nested list
+
+/ alternative syntax
+
+within[5] each (3 6; 4 8; 10 15)
+
+/ this also works
+```
+
+each both
+
+```q
+/ each both ' uses items from 2 lists in pairwise fashion
+/ can also be a list and an atom
+
+/ take each both (#') example
+
+1 2 3 4 #' ("abcd"; "abcd";"abcd";"abcd")
+("a";"ab";"abc";"abcd")
+
+/ take 1 items from first element
+/ take 2 items from second elements
+/ take 3 items from third element
+```
+
+```q
+/ atom #' list
+/ take first 3 items from each element in list
+
+3#'("abcd"; "abcd";"abcd";"abcd")
+("abc";"abc";"abc";"abc")
+
+/ behaves similar to 2 + 1 2 3
+/ the atom (2) is applied to every element of list
+
+/ alternative syntax
+
+#[3] each ("abcd"; "abcd";"abcd";"abcd")
+("abc";"abc";"abc";"abc")
+
+/ same thing
+/ but instead of ' you use EACH keyword
+```
+
+```q
+/ returning to our in example before, can avoid projection by using '
+
+/ projection method using IN
+
+isthreein: 3 in / create projection of in
+isthreein each (1; 1 2; 3 4)
+0011b
+
+/ each both keyword
+
+3 in '(1; 1 2; 3 4)
+001b
+
+/ by using ' each both, can avoid function projection
+
+/ equivalent to doing this:
+3 3 3 in '(1; 1 2; 3 4)
+001b
+
+/ the atom (3) gets applied to every element of right side list
+```
+
+each left \:
+
+```q
+
+```
+
+each right /:
+
+```q
+/ top of arrow points to RIGHT
+/ takes entire left and performs to EACH element in RIGHT
+
+2 3 +/: 3 4 5
+
+5 6
+6 7
+7 8
+
+/ adds 2 3 to each element of 3 4 5
+```
+
+
+
+
+
+
+
+
 
 
 
