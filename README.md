@@ -4888,6 +4888,110 @@ myMax': [20 30 2 3 20 40 70]
 / vs the previous element at the previous index position
 ```
 
+Scan \
+
+```q
+/ scan returns the intermediate values associated with each execution
+/ so returns every single iteration
+/ think of it as a man standing behind a fort, "scanning" the battlefield
+```
+
+```q
+/ plus scan example
+
+(+\) 1 2 3 4 5
+1 3 6 10 15
+
+/ (1)
+/ 1 + (2) = 3
+/ 3 + (3) = 6
+/ 6 + (4) = 10
+/ 10 + (5) = 15
+
+/ alternative syntax
+
+(+) scan 1 2 3 4 5
+1 3 6 10 15
+
+/ this is actually the same as SUMS
+
+sums 1 2 3 4 5
+1 3 6 10 15
+```
+
+```q
+/ append one element of a list to the next to a list in each iteration
+
+(,\)(1 + 0 1 2 3 4)
+
+,1         / 1+0 = 1, appends 1
+1 2        / 1+1 = 2, appends 2
+1 2 3      / 1+2 = 3, appends 3
+1 2 3 4    / 1+3 = 4, appends 4
+1 2 3 4 5  / 1+4 = 5, appends 5
+```
+
+Compound Interest Example
+
+```
+/ 1. given 2 inputs: savings & interest, find a function that tells us annual return
+
+f: { [savings;interest] rate: 1 + 0.01*interest; savings*rate}
+f[10000;1.2] / 10,000 in savings, 1.2% int rate
+10120f / savings after 1 year
+
+/ now lets assume the interest rates over the past 5 years:
+
+interestRates: 1 1 1.25 2 1.6 1.5
+
+/ 2. Calculate the savings based on these new interest rates
+
+(f\) 10000,interestRates
+10000 10100 10201 10328.51 10535.08 10703.64 10864.2
+
+/ SCAN allows you to iterate your function across a list
+/ so taking your formula, and using SCAN (f\)
+/ using 10,000 as your first argument
+/ and a list (of int rates) as your second arg
+```
+
+Over
+
+```q
+/ over / iterates similar to scan, but only returns the final result
+/ think of when it's "over" you only care about the last result
+
+(+/) 1 2 3 4 5
+15
+
+/ the same as sum
+
+sum 1 2 3 4 5
+15
+```
+
+```q
+/ 1. Use drop to remove first element from x and last 2 elements of y
+
+x: 10 30 20 40
+y: 13 34 25 46
+
+1 -2 _' (x;y)
+30 20 40 / dropped first element 10
+13 34    / dropped last 2 elements 25 and 46
+
+/ so the way i see this is,
+/ left side = elements 1 and 2
+/ drop each
+/ right side = lists x and y
+```
+
+
+
+
+
+
+
 
 
 
