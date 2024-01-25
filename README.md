@@ -12,6 +12,7 @@
 9. [Casting](#casting)
 10. [Functions](#func)
 11. [Iterators](#iterators)
+12. [Function Control](#funccontrol)
 
 
 <hr>
@@ -4986,11 +4987,226 @@ y: 13 34 25 46
 / right side = lists x and y
 ```
 
+```q
+/ 2. Create a function using each both (') that combines 2 corresponding strings
 
+combinestring:{x,'y}
+/ output will pair every x with every y
 
+/ call with 2 list of strings:
 
+combinestring[("1";"2";"3");("a";"b";"c")]
+("1a";"2b";"3c")
+```
 
+```q
+/ 3. Create a function using each right that joins a given string to the front of a list of strings
 
+prefixstring:{x,/:y}
+
+/ each right means takes entire x (left) to EACH of y (right)
+
+prefixstring[("1";"2";"3");("a";"b";"c")]
+("123a";"123b";"123c")
+```
+
+<a name="funccontrol"></a>
+### 🔴 [11.0] Function Control
+[Top](#top)
+
+how to return a custom error from a function
+
+```q
+{[] a:10; b:`this; a+b} []
+type error
+
+/ you can't add a long with a sym
+```
+
+```q
+/ to raise our own custom error message
+/ we use signal '
+
+{[] a: 10; b:`this; '"wrong datatype"; a+b} []
+wrong datatype
+error
+
+/ now when it returns an error, you get your custom message!
+/ note your custom msg has to go before your expression
+```
+
+if conditional
+
+```q
+/ checks to see if given condition true
+/ if so, executes all subsequent statements
+/ if false, skips all subsequent statements, and moves to next q expression
+```
+example 1
+
+```q
+a: 10
+if[1b; a:a+1; a]
+11
+
+/ if condition = 1b (true)
+/ so proceeds to execute a:a+1 (10+1)
+
+b: 20
+if[0b; b:b+1; b]
+20
+
+/ since first condition = 0b (false)
+/ skips following statement
+/ returns b
+```
+
+```q
+/ 2. Define variable [r] as 100 and [ans] to be an empty string
+/ write an if statement to say if r is greater than 85, then add 10 to r
+/ and change [ans] to say "high"
+
+r: 100
+ans:"" / ans is an empty string
+
+if[r > 85; r+:10; ans:"high"]
+r
+110
+
+ans
+"high"
+```
+
+if-else statements
+
+```q
+/ designated with a $
+/ if statements don't return a value
+/ if-else statements will return a value
+
+$[condition;ifTrueStatement; ifFalseStatement]
+```
+
+```q
+$[1b; "true"; "false"]
+true
+
+/ since condition is true (1b), executes first statement
+```
+
+```q
+/ create a function that accepts a sym as an arg
+/ and returns a capital string if caps_on is true
+/ otherwise return the sym as a string
+
+caps_on:0b         / declare global variable as false
+
+toString:{if[not 10h=type x; x:string x]; $[caps_on; upper x; x]}
+toString`hey
+"hey"
+
+/ so first part is an [if-statement]
+/ if x is not a string,
+/ then convert x to a string
+/ if it is a string, then ignore and move onto next statement
+
+/ $ if condition is true (it's not), then capitalize x
+/ since its not true, just return x
+```
+
+```q
+/ 3. Create a function that accepts 1 argument as a number
+/ and checks if it is within 20 and 30
+/ and outputs "inside range" or "outside range"
+
+f:{ [val] r:$[val within 20 30 ; "within"; "outside"]; r," range"}
+f[50]
+"outside range"
+
+/ val = your arg/input
+/ if-else statement = either within or outside
+/ finally output = r (within or outside as a string) and joins another string "range"
+ ```
+
+```q
+/ 4. Create a function that accepts 1 argument balance
+/ and if its less than 10, return 1b, but also export to consol "under 10.0"
+/ and if its more than 10, only print to consol "above 10.0"
+
+balance: 9:32
+befrugal: $[balance < 10;
+             [2 "under 10.0"; 1b]; 
+             [1 "above 10.0"; 0b;]]
+befrugal
+befrugal[11]
+0b
+
+/ so this starts with a simple if-else condition
+/ the 2 = exports to CONSOL
+/ 11 > 10, so no output (due to the ; suppresses the 0b)
+/ but in the consol, it will print "above 10.0"
+```
+
+```q
+/ comparison tests can be applied to any datatype
+
+0p
+2000.01.01T00:00:00.000000p
+
+/ p is the datatype for timestamp
+/ so 0p is the start of all time, ie, jan 1, 2000 @ midnight
+
+time:0p
+$[time;`after_midnight;`midnight]
+`midnight
+
+/ 0p = midnight
+/ so first condition is true
+```
+
+```q
+/ 4. Create function priceCheck that accepts a sym as an input
+/ and if the sym is mars, return 2.5
+/ otherwise return 0
+/ and prints to standard error (consol) "who cares"
+
+priceCheck:{$[x~`mars; 2.5; [-2 "who cares"; 0]]}
+priceCheck `mars
+2.5
+
+/ since your input was `mars, returns 2.5
+
+priceCheck `snickers
+0
+/ also prints "who cares" to the consol
+```
+
+Multiple If-Else Statements
+
+```q
+
+thresholds: 160 170
+
+tempMonitor:{ [sensorTemp; thresholds]         / sensor = your input
+               $[sensorTemp > thresholds[1];   / if input greater than index position 1 of threshold 170
+                   `"temp too hot! stop!";     / if true, return this custom error message 
+                 sensorTemp < thresholds[0];   / if first condition false, move onto this condition. is input less than 160?
+                   -2 "temp too low";          / if true, print to consol this message   
+                   -1"Temp within range"];     / else, print this message to consol
+               sensorTemp}                     / show your input
+
+tempMonitor[162;thresholds]
+162
+/ also prints to consol "Temp within range"
+
+tempMonitor[150;thresholds]
+150
+/ also prints to consol "temp too low"
+
+tempMonitor[180;thresholds]
+"temp too hot! stop!"
+error
+```
 
 
 
