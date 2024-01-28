@@ -5327,3 +5327,124 @@ f[`sym;"STRING"]
 "string"
 ```
 
+Vector Conditional Evaluation
+
+```q
+syntax: ?[x;y;z]
+
+/ !note vector conditional uses ? instead of $!
+/ x = boolean vector
+/ y and z = return the same type
+
+/ vector conditionals provide a return value
+/ but cannot be extended to else-if clauses
+```
+
+```q
+?[10001b; 1 2 3 4 5; 10 20 30 40 50]
+1 20 30 40 5
+
+/ so takes first statement of booleans
+/ and if true, returns corresponding first statement
+/ if false, returns corresponding second statement
+```
+
+```q
+/ if y = atomic, then will be repeated where necessary
+
+?[10001b; 1; 10 20 30 40 50]
+1 20 30 40 1
+
+/ so 1 just repeats
+```
+
+```q
+/ Create a dyadic function that accepts a list (vector)
+/ but caps the  NUMBER of items in vector based on your second arg
+
+vector: 10?20
+/ so vector is a random list of 10 numbers
+
+f:{[vec; cap] ?[(count vec) > cap; cap; vec]}
+f[vector;5]
+5
+
+/ caps list to 5 elements
+```
+
+```q
+/ Now create a dyadic function that accepts a list (vector)
+/ but caps the VALUE of each element in vector based on second arg
+
+vector: 10?20
+/ so vector is a random list of 10 numbers
+
+f:{[vec; cap] ?[vec> cap; cap; vec]}
+f[vector;5]
+5 3 2 3 1 2 3 4 2
+
+/ caps the VALUE of each element to 5
+```
+
+```q
+/ create a list of 3 sides (`buy or `sell)
+/ create a list of 3 bids
+/ create a list of 3 asks
+
+/ create an if/else conditional such that if
+/ side = buy, return the ask price
+/ else, return the bid price
+
+side:`buy`buy`sell
+bid: 10 11 12
+ask: 11 12 13
+
+?[side=`buy;ask;bid]
+11 12 12
+```
+
+```q
+/ Create list to be 1 2 3 0N 5
+/ use vector conditional to fill null with 10
+
+k: 1 2 3 0N 5
+
+?[null k;10; k]
+1 2 3 10 5
+
+/ so using VECTOR CONDITIONAL
+/ if value = null (boolean check), replace with 10
+/ otherwise return the value (of k)
+```
+
+2 things KDB rarely ever uses
+
+```q
+/ DO operator allows us to repeat an execution multiple times
+/ useful for checking timing of queries
+/ no return value
+```
+
+```q
+/ WHILE operator allows expression to be evaluated while condition is true
+/ no return value
+/ typically not used in KDB because can use vector conditioning
+
+/ create a function that calcs the fibo sequence
+/ and accepts arg = number of elements returned
+/ using the WHILE loop
+
+f:{[x] r: 1 1; while[x-:1; r,:sum -2#r];r}
+f[10]
+1 1 2 3 5 8 13 21 34 55 89
+
+/ r = starting value of fibo sequence
+/ while
+
+/ for index position x: x-1
+/ join r with th sum of the last 2 elements of r
+```
+
+
+
+
