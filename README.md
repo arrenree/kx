@@ -5208,6 +5208,122 @@ tempMonitor[180;thresholds]
 error
 ```
 
+```q
+/ Let's say you have 2 separate thresholds:
+/ wool threshold = 160 170
+/ viscose threshold = 150 180
 
+/ and 3 possible outcomes:
+/ "temp too low", "temp too high", or "just right"
 
+/ create a core function, then projections of this function
+/ for wool and wiscose
+
+/ 1. temp thresholds
+woolThresh: 160 170
+viscoseThresh: 150 180
+
+/ 2. temp actions
+tooLow:{-2 "temp too low"; min (0,x)}
+tooHigh:{`"temp too high"};
+justRight:(::) 
+
+/ tooLow - min chooses the smaller number btwn 0 and your input
+/ returns 0, and prints "too low" to consol
+
+/ tooHigh - if too high, error message will read "too high", then STOP executing
+/ note the ; at the end
+
+/ justRight - :: means functional null - do nothing
+
+/ 3. Core function logic
+tempMonitor: { [sensorTemp; thresh]
+                function:$[sensorTemp > thresh[1];
+                      tooHigh;
+                   sensorTemp < thresh[0];
+                      tooLow;
+                      justRight];
+                 function[sensorTemp]}
+
+/ tempMonitor is a function that accepts 2 args
+/ your sensor input, and the previously established thresholds
+/ function is a variable that saves your if-else conditional
+/ if input is > index position 1 (max threshold), action tooHigh
+/ else if input < index position 0 (low threshold), action tooLow
+/ else action justRight(functional null - do nothing)
+/ then run this if/else condition using your input
+
+/ 4. Projection for each material
+
+woolMonitor: tempMonitor[ ;woolThresh];
+viscoseMonitor: tempMonitor[ ;viscoseThresh];
+
+/ binds the second argument to your thresholds set above
+/ and allows your first arg to be your temp input
+
+/ 5. Calling the function
+
+woolMonitor[162]
+162 / justRight; does nothing
+
+woolMonitor[150]
+0 / returns min of (0;150). Prints "temp too low" to consol
+```
+
+```q
+/ Create dyadic function that accepts either syms or strings
+/ and compares the [type] of first arg to a [sym],
+/ and if first arg = [sym], print second arg as a
+/ [lower case string]
+/ else, return value of second arg as a string
+
+/ so in other words:
+/ if [sym, string] = return lowercase string
+/ if [string, sym] = return "sym" (as a string)
+/ so no matter what, return y as a string
+
+/ part 1
+
+/ sym = type 11h
+
+type x~11h / comparison boolean true or false
+abs type x~11h / want to compare both atoms and lists
+
+f:{ [x;y] $[(abs type x)~11h; lower; ::]
+
+/ so if first arg = sym, we want to return the function LOWER
+/ else, ignore (do nothing)
+
+/ part 2
+
+/ if second arg = string (or char 10h)
+/ simply return the string
+/ else string it, and return it
+
+$[10h = type y; y; string y]
+
+/ so the first part will LOWER the entire second part
+/ if x = sym
+/ otherwise, it'll just return a string y
+
+/ part 3: combine the 2 parts
+
+f: { [x;y] $[abs type x ~ 11h; lower; ::] $[10h= type y; y; string y] }
+
+/ note NO SEMICOLON after first if/else conditional
+/ since you are using the LOWER FUNCTION
+/ to apply to second if/else conditional
+/ if you use ; then LOWER FUNCTION doesn't get applied 
+
+/ part 4: call function to test out
+
+f["string";`sym]
+"sym"
+
+f[`sym;`SYM]
+"sym"
+
+f[`sym;"STRING"]
+"string"
+```
 
