@@ -5540,4 +5540,74 @@ abc:{$[x~`a;1;x~`b;2;x~`c;3;0]}
 ```
 
 ```q
-/ 7. 
+/ 7. Create monadic func that checks if input is a char or string,
+/ return the arg
+/ otherwise return the arg as a string
+
+
+f:{ $[10h=abs type x;x; string x]}
+f[`test]
+"test"
+
+/ note - have to put 10h FIRST
+/ doesnt work otherway around for some reason
+/ can use 10h or 10
+/ use abs to check for both char + string
+```
+
+```q
+/ 8. Create a func that takes a list of pos + neg numbers
+/ and replaces neg numbers with 0
+
+f:{?[x<0; 0; x]}
+f[1 2 -3 4]
+1 2 0 4
+
+/ need to use comparison operator for vector conditional
+```
+
+```q
+/ 9. Create a func that takes a list of numbers
+/ and replaces numbers greater than 100
+/ with half their value
+
+f:{?[x>100; x%2; x]}
+f[10 200 400]
+10 100 200
+```
+
+```q
+/ 10. Create a monadic function that take a list of orderIds
+/ and use the [LAST character] to return `Buy (B) or `Sell (S)
+
+/ input example: (`9280408_B`71100_B)
+/ output example:`Buy`Buy
+
+f:{?["B"=last each string x;`Buy;`Sell]}
+f[(`9280408_B`71100_B)]
+`Buy`Buy
+
+/ so x = list of syms
+/ first convert x from sym to string
+/ then using indexing, obtain the LAST element of EACH
+/ nested entry (since input = list of strings)
+/ if this = "B", then return `buy
+```
+
+```q
+/ 11. What is wrong with this function:
+
+add1:{[a] {a+1}[a]}
+
+/ a is a local variable
+/ so the inner function of {a+1} doesnt know what a is
+
+/ can fix by doing this:
+
+add1:{[a] {[a] a+1} [a]} / declare explicit variable
+
+add1[2]
+3
+```
+
+
