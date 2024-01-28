@@ -5445,6 +5445,99 @@ f[10]
 / join r with th sum of the last 2 elements of r
 ```
 
+Function Control Exercises
 
+```q
+/ 1. Create variable v which is a random number btwn 1 and 100
+/ write an if statement that doubles v if it is less than 50
 
+v:rand 100
+54
 
+if[v<50;v*:2]
+show v
+54
+
+/ use RAND operator to generate random number from 0-99
+/ for IF CONDITIONAL, checks if first statement is true
+/ then evaluates expression
+/ if false, then stops
+```
+
+```q
+/ 2. Create a func that uses if conditional to check if
+/ a number is >= 0.9. if so, print warning message
+/ to std error that says "warning!" and continues with
+/ func to return today's date
+
+f:{ if[x>= 0.9; -2 "warning!]; .z.d}
+f[0.9]
+2024.01.28d
+
+/ returns today's date
+/ and prints "warning" to consol
+/ note, use -2 to print to std error
+
+/ note if false, still returns today's date
+/ just doesn't print "warning!" to consol
+```
+
+ ```
+/ 3. Create func that uses if conditional to check if input is a date
+/ if not, use [error signal] to return `not a date (note sym)
+/ if it is a date, add 1 to the date to return tom's date
+
+f:{ if[not -14h=type x; '`$"not a date"]; x + 1}
+/ first checks if x = date (14h)
+/ then cast your string to a sym
+/ then use ' to use this as your error message
+
+f .z.t
+error: not a date
+
+f .z.d
+2024.01.29d
+```
+
+```q
+/ 4. Create a monadic func that takes whole number
+/ and returns `odd if input is an odd number
+/ and `even if input is an even number
+
+f:{$[0=x mod 2; `even; `odd]}
+f[10]
+`even
+```
+
+```q
+/ 5. Create a monadic func that returns a boolean stating
+/ if input is a float
+
+f:{$[-9h=type x; 1b; 0b]}
+f[10.5]
+1b
+
+/ note, need to use -9 since atomic
+/ can use -9 or -9h
+```
+
+```q
+/ 6. Create a monadic func that takes a sym as an input
+/ if sym = a, return 1
+/ if sym = b, return 2
+/ if sym = c, return 3
+/ else, return 0
+
+abc:{$[x~`a;1;x~`b;2;x~`c;3;0]}
+
+/ if x = `a, return 1
+/ if x = `b, return 2
+/ if x = `c, return 3
+/ else, return 0
+
+/ so note if/else conditional $ can chain logic
+/ note use ~ to check equality + type
+```
+
+```q
+/ 7. 
