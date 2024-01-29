@@ -13,6 +13,7 @@
 10. [Functions](#func)
 11. [Iterators](#iterators)
 12. [Function Control](#funccontrol)
+13. [Scripting](#script)
 
 
 <hr>
@@ -5705,6 +5706,66 @@ f ("1 mile"; "5 km"; "3 mile")
 / remember, when using vector conditional, need to use ? instead of $
 ```
 
+<a name="script"></a>
+### 🔴 [13.0] Scripting
+[Top](#top)
+
+```q
+/ this is a comment block
+
+nothing inside here will get executed
+
+\
+```
+
+Loading Scripts
+
+```q
+\l qscript.q
+
+/ use \l to load scriptions
+
+/ can also use system
+
+system "l qscript.q"
+```
+
+Calling Script from another script
+
+```q
+/ you can create a script which is called from another script
+
+/ for example, here is masterscript.q
+
+0N!"Hello, this is master script";
+\l secondaryscript.q
+
+/ this will load another script called secondaryscript.q
+/ by executing masterscript.q, you will execute both scripts
+```
+
+```q
+/ it is generally recommended to avoid writing scripts that are dependent on local variables
+/ being declared manually and existing in the calling q process
+/ a better practice is to store these in config files (which are then loaded as part of script)
+/ or we can pass parameters to our q script at time of calling
+
+/ a better approach is suing the command line to pass in variables
+/ and have script parse the value
+
+0N!("The value of .z.x is -");
+0N!.z.x;
+0N!"hello ", .z.x[1]
+exit 0;
+
+/ .z.x captures the command line argument as a list of strings
+
+system["q qscript.q -name Allen "]
+
+/ .z.x simply captures the arg without formatting them
+/ need to provide index to retrieve a specific parameter
+
+```
 
 
 
