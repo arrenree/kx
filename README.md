@@ -5610,4 +5610,101 @@ add1[2]
 3
 ```
 
+```q
+
+/ 12. Create a monadic function that takes an integer and returns the symbol:
+/ `fizz if number divisible by 3
+/ `buzz if the number divisible by 5
+/ `fizzbuzz if the number divisible by both 3 and 5
+/ otherwise just return the number itself
+
+/ pass numbers 1-100 to this function
+
+f:{[x] $[0=x mod 3; `fizz; 0=x mod 5; `buzz; x]}
+
+/ so this takes care of outcomes for `fizz and `buzz
+/ but you still need to figure out `fizzbuzz (both 3 and 5)
+/ need to insert ANOTHER if/else conditional in the middle
+
+f:{[x] $[0=x mod 3; $[0=x mod 5; `fizzbuzz; `fizz]; 0=x mod 5; `buzz; x]}
+
+/ syntax is:
+
+IF[condition1; IF[condition2a; ifTrue; ifFalse]; condition2b; ifTrue; ifFalse]
+
+/ if condition1 is true, move onto condition2a. if true, means divisible by both 3 and 5, hence `fizzbuzz
+/ if condition1 is true, move onto condition2a. if false, means only divisible by 3, hence `fizz
+/ if condition1 is false, skip middle condition2a, move onto condition2b
+
+/ now to CALL the function as a list:
+
+a: 1+ til 100
+/ a = a list from 1 to 100
+
+f[a]
+error
+/ this doesn't work since you are trying to feed in a list
+
+/ need to do this
+
+f each a
+1 2 `fizz 4 `buzz `fizz 7 8
+```
+
+```q
+/ 13. Create a monadic function that takes a list of string values in distances in both miles and km
+/ extract the distance value and any value that is in miles, convert to km (multiply miles by 1.609)
+/ return a numerical list (all in km)
+
+/ input: ("1 mile"; "5 km"; "3 miles")
+/ output 1.609 5 4.827
+
+/ part 1. create boolean "LIKE" for miles
+b: x like "*mile*"
+
+/ so if x contains the string "mile" will be stored as b
+
+/ part 2. extract numerical value from mile string
+/ the number is the first part of the string ("1 mile")
+/ vs is used to split up strings
+
+" " vs/: ("1 mile"; "3 mile")
+(("1";"mile");("3";"mile")) / string successfully split based on space " " delimiter
+
+/ so need to use each RIGHT to apply vs through every element in list of strings
+/ if only 1 element simply this:
+
+" " vs "1 mile"
+("1";"mile")
+
+
+/ part 3. convert first element of each string to a float (the number)
+
+v: "F"$first each " " vs/: ("1 mile"; "3 mile")
+1 3F
+
+/ so take the FIRST element of EACH nested string
+/ and cast to a float
+/ and save as variable v
+
+/ part 4. Core Logic (if miles, convert to km * 1.609)
+
+?[b; 1.609*v; v]
+
+/ if string contains mile string (b)
+/ extract the number (v) and multiply by 1.609
+/ otherwise, simply return the number (v)
+
+/ part 5. put it all together
+
+f:{b: x like "*mile*"; v: "F"$first each " " vs/: x; ?[b; 1.609*v; v]}
+f ("1 mile"; "5 km"; "3 mile")
+1.609 5 4.827
+
+
+/ remember, when using vector conditional, need to use ? instead of $
+```
+
+
+
 
