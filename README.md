@@ -1367,178 +1367,10 @@ type each (dict;tab;keytab)
 / 99h = keyed table
 ```
 
-<a name="qsql"></a>
+<a name="functions"></a>
 ### 🔴 [4.0] Functions
 [Top](#top)
 
-```q
-/ functions are a list of expressions
-/ separated by semicolons and encased by curly brackets
-
-/ to "call" a function = run it with your inputs/arguments
-/ functions are called with arguments in square brackets [ ]
-
-max [10 11 12] / functional notation
-12
-
-/ with unary functions (single argument), we can omit the brackets
-max 10 11 12 / infix notation
-12
-```
-
-```q
-/ 2. Create a binary function called speed
-
-speed: {[miles;hours] mph: miles%hours; kph: 1.609*mph; :kph; }
-
-/ binary function = 2 arguments
-/ miles and hours are the arguments
-/ you can define variables within function like mph
-/ kph is a local variable we defined inside func
-/ we can explictly return it using :
-/ requires semi colons between expressions
-```
-
-```q
-/ 3. Call function speed with args 15 and 0.5
-
-speed[15;0.5]
-48.27
-
-```
-
-```q
-/ 4. If there is no explicit return from a function
-/ its result is the last expression
-/ re-write above with no return
-
-speed: {[miles;hours] 1.609*miles%hours}
-speed[15;0.5]
-48.27
-
-```
-
-🔵 [4.2] Calling Functions with List of Arguments
-
-```q
-/ 4. You can call a function with a list of arguments
-/ recall your arguments are mile and hours
-
-speed[15 20 30; 0.5 1.0 1.5]
-48.27 32.18 32.18
-
-/ this is important!
-/ you called a LIST of miles (15 20 30)
-/ and a LIST of hours (0.5 1.0 1.5)
-```
-
-🔵 [4.3] Explicit and Implicit Parameters
-
-```q
-/ in the above speed function, miles and hours are explicit arguments
-/ these are also known as explicit parameters
-
-/ if function has less than 3 arguments
-/ their names can be ommited
-/ and x, y, and z are used as implicit arguments
-
-/ 1. Re-write speed using implicit arguments
-
-speed:{1.609*x%y}
-
-/ replaced miles and hours with x and y
-```
-
-```q
-/ 2. Call speed with 2 distances and a single duration
-
-speed[15 30; 0.5]
-48.27 96.54
-
-```
-
-```q
-/ 3. Create a function that will find the area of a rectangle with length 7.93 and width 1.87 using implicit parameters
-
-func:{x*y}
-func[7.93;1.87]
-```
-
-🔵 [4.4] Call Functions from qSQL
-
-```q
-/ 1. from smalltrips, retrieve all trips in January
-
-jan09:select from smalltrips where date within 2009.01.01 2009.01.31
-
-/ filters dates in jan
-```
-
-```q
-/ 2. Retrieve speed, distance, and duration for VTS
-/ jan09 is a table, and in addition to retrieving data from columns
-/ you can call functions in sQSL queries
-
-select spd:speed[distance;duration % 0D01:00], distance, duration from jan09 where vendor=`VTS
-
-spd      | distance |      duration             
--------------------------------------------
- 48.5918 |   1.51   |  0D00:03:00.000000000 
--17.3772 |   1.26   | -0D00:07:00.000000000
-14.28792 |   0.74   |  0D00:05:00.000000000 
-
-/ spd is a FUNCTION (speed) and the arguments are column inputs
-/ note you are also changing duration from timespan to hours
-/ can use meta to confirm datatype of duration
-
-```q
-/ 3. Retrieve the avg speed by vendor
-/ avg speed = total 
-
-select avgspeed:speed[sum distance;sum[duration]%0D01:00] by vendor from jan09
-
-vendor| avgspeed
-------| --------
-CMT   | 24.43787
-DDS   | 22.21592
-VTS   | 22.33302
-
-/ avg speed calc as total distance * total duration
-/ need to convert duration to hours (and float)
-```
-
-```q
-/ 4. Create func called tipOverDistance that divides argument x by argument y
-
-tod:{x%y}
-
-/ 5. Create func called createtable that retrieves vendor, distance, tip, and adds new col from result of tipoverdistance applied to cols tip and distance where the distance is creater than 1 mile
-
-createtable: {select vendor, distance, tip, tipPerDist:tod[tip;distance] from jan09 where distance > 1.0}
-
-/ so you create this function called createtable
-/ which is essentially a table
-/ to display the output (table) of your function
-
-/ just do createtable[]
-
-createtable[]
-
-vendor |	distance |	tip |	tipPerDist
------------------------------------
-CMT    |	   1.3   |	0.0 |  	 0.0
-CMT	   |    5.5   |	0.0	|    0.0
-CMT	   |    2.1	  | 0.0	|    0.0
-CMT	   |    3.7  	| 0.0	|    0.0
-```
-
-```q
-/ 6. Find the avg tip per mile per vendor from createtable
-
-select avg tipPerDist, avg distance, avg tip by vendor from createTable[]
-
-/ you are simply retrieving the averages of the columns from createtable[]
-```
 
 🔵 [4.5] Iterators
 
@@ -3978,29 +3810,35 @@ strings
 ### 🔴 [10.0] Functions
 [Top](#top)
 
-
 What are Functions
 
 ```q
-/ a function = a sequence of expressions which are evaluated
+/ Function are a sequence of expressions which are evaluated
 / function valence = the number of input parameters (can be 0 or up to 8)
 / function logic = code you write to make the function do what you want
 / function return = output returned by function (can also be nothing)
-
-/ when you APPLY a function, it causes expressions to be evaluated in sequence
-/ substituting the value of each argument for corresponding input parameters
 ```
 
 Function Valence
 
 ```q
-/ function valence = number of arguments or parameters
+/ Function valence = number of arguments or parameters
 
-/ 2 parameters
-+[3;4]
+/ 0 parameters (Niladi)
 
-/ 1 parameter
+.Q.gf[]
+0
+
+/ 1 parameter (Monadic)
 +[3;]
+
+/ another example of a monadic Function (1 arg)
+
+neg 1 2 3
+-1 -2 -3
+
+/ 2 parameters (Dyadic)
++[3;4]
 
 +[3;4;1]
 error
@@ -4009,16 +3847,27 @@ error
 / single parameter = monadic function
 ```
 
+Calling functions
+
 ```q
-/ monadic function (1 arg)
+/ when you call/apply a function, it causes expressions to be evaluated in sequence
+/ substituting the value of each argument for corresponding input parameters
+/ to "call" a function = run it with your inputs/arguments
+```
 
-neg 1 2 3
--1 -2 -3
+```q
+/ 1. Call built in MAX function with 10 11 12
 
-/ niladic function (no arg)
+max [10 11 12]
+12
 
-.Q.gf[]
-0
+/ this is known as functional notation
+/ With unary functions (single argument), we can omit the brackets
+
+max 10 11 12
+12
+
+/ this is called infix notation
 ```
 
 Different Ways to Pass parameters to Functions
@@ -4033,9 +3882,8 @@ Different Ways to Pass parameters to Functions
 %[3] 5      / projecting over the first argument and then applying implicity to the RHS value of 5
 ```
 
-Different Ways to Call a Function
-
 ```q
+/ another example of diff ways to call a function
 / suppose you want to call using inputs 3 and 5
 
 divide:{[numerator;denominator] numerator % denominator} 
@@ -4068,6 +3916,53 @@ sumStats:{[l]
 ```
 
 Function Problem Set 1
+
+```q
+/ 1. Create a binary function called speed
+
+speed: {[miles;hours] mph: miles%hours; kph: 1.609*mph; :kph; }
+
+/ binary function = 2 arguments
+/ miles and hours are the arguments
+/ you can define variables within function like mph
+/ kph is a local variable we defined inside func
+/ we can explictly return it using :
+/ requires semi colons between expressions
+```
+
+```q
+/ 2. Call function speed with args 15 and 0.5
+
+speed[15;0.5]
+48.27
+```
+
+```q
+/ 3. If there is NO explicit return from a function,
+/ its result is the last expression
+/ re-write above with no return
+
+speed: {[miles; hours] 1.609 * miles % hours}
+speed[15; 0.5]
+48.27
+```
+
+Calling Functions with List of Arguments
+
+```q
+/ 4. You can call a function with a LIST OF ARGUMENTS
+/ recall your arguments are mile and hours
+
+speed: {[miles; hours] 1.609 * miles % hours}
+speed[15 20 30; 0.5 1.0 1.5]
+48.27 32.18 32.18
+
+/ this is important!
+/ you called a LIST of miles (15 20 30)
+/ and a LIST of hours (0.5 1.0 1.5)
+```
+
+Function Problem Set 2
 
 ```q
 / 1. Create a function called range that takes 1 parameter but doesn't do anything
@@ -4145,21 +4040,56 @@ neg [1;2;3]
 Explicit vs Implicit Parameters/Arguments
 
 ```q
-/ Explicit arguments are defined within square brackets in function [ ]
+/ Explicit arguments are defined within square brackets in a function [ ]
 
-f: { [a;b;c] a + b + c}
-/ a, b, c are explicit parameters
+f: { [a; b; c] a + b + c}
+
+/ a, b, c are EXPLICIT parameters
 ```
 
 ```q
 / Implicit arguments don't need to be defined
-/ they are x, y, and z
+/ if function has less than 3 arguments, their names can be ommited
+/ x, y, and z are used as implicit arguments
 
 f: { x + y + z }
+
 / if you are only using 3 parameters, don't need to define them
 ```
 
-Function Problem Set 2
+Functions Problem Set 3
+
+```q
+/ 1. Re-write the below function using implicit arguments
+
+original function:
+speed: {[miles; hours] 1.609 * miles % hours}
+
+/ implicit version:
+speed:{1.609 * x % y}
+
+/ replaced miles and hours with x and y
+```
+
+```q
+/ 2. Call function speed with 2 distances and a single duration
+
+speed[15 30; 0.5]
+48.27 96.54
+
+/ can pass through multiple args for x
+```
+
+```q
+/ 3. Create a function that will find the area of a rectangle
+/ with length 7.93 and width 1.87 using implicit parameters
+
+func:{x*y}
+func[7.93;1.87]
+
+```
+
+Function Problem Set 4
 
 ```q
 / 1. Create a monadic function to find all odd numbers in a list
@@ -4326,7 +4256,7 @@ add 1
 / the new output = 3
 ```
 
-Projection Problem Set
+Projection Problem Set 5
 
 ```
 / 1. To create a projection where the second argument is held constant, simply omit the first argument
@@ -4366,7 +4296,7 @@ modSeven til 11
 
 ```
 
-Functions Problem Set
+Functions Problem Set 6
 
 ```q
 / 1. Create a monadic function that returns a boolean indicating
@@ -4505,6 +4435,82 @@ f 4.1 4.3 4.5
 4 4 5
 
 / use `long to cast to longs
+```
+
+Call Functions from qSQL 7
+
+```q
+/ 1. from smalltrips, retrieve all trips in January
+
+jan09:select from smalltrips where date within 2009.01.01 2009.01.31
+
+/ filters dates in jan
+```
+
+```q
+/ 2. Retrieve speed, distance, and duration for VTS
+/ jan09 is a table, and in addition to retrieving data from columns
+/ you can call functions in sQSL queries
+
+select spd:speed[distance;duration % 0D01:00], distance, duration from jan09 where vendor=`VTS
+
+spd      | distance |      duration             
+-------------------------------------------
+ 48.5918 |   1.51   |  0D00:03:00.000000000 
+-17.3772 |   1.26   | -0D00:07:00.000000000
+14.28792 |   0.74   |  0D00:05:00.000000000 
+
+/ spd is a FUNCTION (speed) and the arguments are column inputs
+/ note you are also changing duration from timespan to hours
+/ can use meta to confirm datatype of duration
+
+```q
+/ 3. Retrieve the avg speed by vendor
+/ avg speed = total 
+
+select avgspeed:speed[sum distance;sum[duration]%0D01:00] by vendor from jan09
+
+vendor| avgspeed
+------| --------
+CMT   | 24.43787
+DDS   | 22.21592
+VTS   | 22.33302
+
+/ avg speed calc as total distance * total duration
+/ need to convert duration to hours (and float)
+```
+
+```q
+/ 4. Create func called tipOverDistance that divides argument x by argument y
+
+tod:{x%y}
+
+/ 5. Create func called createtable that retrieves vendor, distance, tip, and adds new col from result of tipoverdistance applied to cols tip and distance where the distance is creater than 1 mile
+
+createtable: {select vendor, distance, tip, tipPerDist:tod[tip;distance] from jan09 where distance > 1.0}
+
+/ so you create this function called createtable
+/ which is essentially a table
+/ to display the output (table) of your function
+
+/ just do createtable[]
+
+createtable[]
+
+vendor |	distance |	tip |	tipPerDist
+-----------------------------------
+CMT    |	   1.3   |	0.0 |  	 0.0
+CMT	   |    5.5   |	0.0	|    0.0
+CMT	   |    2.1	  | 0.0	|    0.0
+CMT	   |    3.7  	| 0.0	|    0.0
+```
+
+```q
+/ 6. Find the avg tip per mile per vendor from createtable
+
+select avg tipPerDist, avg distance, avg tip by vendor from createTable[]
+
+/ you are simply retrieving the averages of the columns from createtable[]
 ```
 
 
