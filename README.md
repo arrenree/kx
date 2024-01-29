@@ -13,7 +13,7 @@
 10. [Functions](#func)
 11. [Iterators](#iterators)
 12. [Function Control](#funccontrol)
-13. [Scripting](#script)
+13. [Dictionaries](#dict)
 
 
 <hr>
@@ -5712,66 +5712,183 @@ f ("1 mile"; "5 km"; "3 mile")
 / remember, when using vector conditional, need to use ? instead of $
 ```
 
-<a name="script"></a>
-### 🔴 [13.0] Scripting
+<a name="dict"></a>
+### 🔴 [13.0] Dictionaries
 [Top](#top)
 
 ```q
-/ this is a comment block
+/ dictionaries are first order datatypes in q
+/ associated type of 99h
 
-nothing inside here will get executed
+/ since dictionaries are first order types, can apply functions to them
 
-\
-```
+d: `a`b ! 1 2
 
-Loading Scripts
+a | 1
+b | 2
 
-```q
-\l qscript.q
+d + 3
 
-/ use \l to load scriptions
+a | 4
+b | 5
 
-/ can also use system
+d * 1 2 / pairwise vector multiplication
 
-system "l qscript.q"
-```
-
-Calling Script from another script
-
-```q
-/ you can create a script which is called from another script
-
-/ for example, here is masterscript.q
-
-0N!"Hello, this is master script";
-\l secondaryscript.q
-
-/ this will load another script called secondaryscript.q
-/ by executing masterscript.q, you will execute both scripts
+a | 1
+b | 4
 ```
 
 ```q
-/ it is generally recommended to avoid writing scripts that are dependent on local variables
-/ being declared manually and existing in the calling q process
-/ a better practice is to store these in config files (which are then loaded as part of script)
-/ or we can pass parameters to our q script at time of calling
+/ Create a dictionary from 2 lists
 
-/ a better approach is suing the command line to pass in variables
-/ and have script parse the value
+names: `john`steve`rachel
+ages: 20 21 22
 
-0N!("The value of .z.x is -");
-0N!.z.x;
-0N!"hello ", .z.x[1]
-exit 0;
+dict: names ! ages
 
-/ .z.x captures the command line argument as a list of strings
+john   | 20
+steve  | 21
+rachel | 22
+```
 
-system["q qscript.q -name Allen "]
+```q
+/ Creating a dictionary from nested lists
 
-/ .z.x simply captures the arg without formatting them
-/ need to provide index to retrieve a specific parameter
+(`arthur`dent; `allen`sherman) ! 10 20
+
+arthur dent   | 10
+allen sherman | 20
+```
+
+```q
+/ Create an empty dictionary:
+
+a: () ! ()
 
 ```
 
+```q
+/ Create a single element dictionary with key jan and value 1
 
+(enlist `jan) ! enlist 1
+
+jan | 1
+
+/ note you don't need brackets for value
+/ need to use enlist since single item
+```
+
+```q
+/ assume this dictionary:
+
+dict: `john`steve`rachel ! 20 21 22
+
+john   | 20
+steve  | 21
+rachel | 22
+
+/ we can specify specific KEYs, and the corresponding VALUES are returned:
+
+dict `john
+dict[`john]
+20
+
+```
+
+```q
+/ Pass a list of keys to retrieve multiple corresponding values
+
+L: `john`steve`rachel
+
+dict[L]
+20 21 22
+
+/ can pass multiple keys
+/ to retrieve multiple values
+```
+
+Using ? Find on Dictionaries
+
+```q
+10 20 30 40 ? 20
+1
+
+/ from list, FIND the index location of 20
+
+/ given the dict below, retrieve the key from range 20
+
+dict:
+john   | 20
+steve  | 21
+rachel | 22
+
+dict?20
+`john
+```
+
+```q
+/ Create dict with entries for `john`steve`rachel with ranges jan, sep, oct (as strings)
+
+dict: `john`steve`rach ! ("jan";"sep";"oct")
+john  | "jan"
+steve | "sep"
+rach  | "oct"
+
+/ 1. what is steve's birth month?
+
+dict[`steve]
+"sep"
+
+/ 2. Who's birthday was in Oct?
+
+dict?"oct"
+`Steve
+
+/ so remember, if you are looking for VALUES, can use dict[key]
+/ if you are looking for KEYS, need to use dict ? value
+```
+
+```q
+/ assume the dict:
+
+dict: `john`allen`sherman ! 10 10 10
+
+john    | 10 
+allen   | 10
+sherman | 10
+
+/ 1. update john's value to 20
+
+dict[`john]: 20
+
+/ 2. subtract 1 from john's value
+
+dict[`john]: dict[`john]-1
+john | 9
+
+/ note you have to re-save the output as the key
+/ so you retrieve the VALUE from dict[`john], then -1 (9)
+/ then save this new value to dict[`john]
+
+/ alternative syntax:
+
+dict[`john]-:1
+
+/ similar to a:a-1
+/ a-:1
+```
+Removing Entries
+
+```q
+/ use drop _ to remove entries in dictionaries
+
+dict: `tom`brian`steve`sarah`jane! (18 19 20 21 22)
+
+/ 1. drop tom and jane from dict
+
+`tom`jane _ dict
+
+john
+steve
+rachel 
 
