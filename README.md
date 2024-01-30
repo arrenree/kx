@@ -5884,11 +5884,183 @@ Removing Entries
 
 dict: `tom`brian`steve`sarah`jane! (18 19 20 21 22)
 
-/ 1. drop tom and jane from dict
+/ 1. drop the first 2 entries from dict
+
+2 _ dict
+
+steve	| 20
+sarah	| 21
+jane	 | 22
+
+/ notice the whitespace before and after the _
+```
+
+```q
+/ 2. drop tom and jane from dict
 
 `tom`jane _ dict
 
-john
-steve
-rachel 
+brian |	19
+steve	| 20
+sarah	| 21
+```
+
+take # from dictionaries
+
+```q
+/ can use # take to retrieve subset of diction
+
+/ 1. retrieve only the values for tom and jane
+
+`tom`jane # dict
+
+tom  | 18
+jane | 22 
+```
+
+```q
+/ 2. What happens when you attempt to retrieve a key that isnt defined?
+
+`casper`tom # dict
+casper |
+tom    | 18    
+
+/ returns a null
+```
+
+```q
+/ 3. Retrieve casper and tom from dict. use 100 for any missing values
+
+100^`casper`tom # dict
+casper | 100
+tom    | 18
+
+/ use carrot ^ to fill missing values
+```
+
+appending new values to dict
+
+```q
+/ assignment method
+
+dict[`olivia]: 100
+
+/ indexing a key that doesn't exist appends it
+
+/ can add in bulk
+dict[`sally`joe]: 23 24
+```
+
+joining 2 dict
+
+```q
+/ use join , to join 2 dicts
+
+d1: `AAPL`IBM`KX! 10 20 30
+d2: `FD`MSFT ! 40 50
+
+d1, d2
+
+AAPL	| 10
+IBM	 | 20
+KX	  | 30
+FD	  | 40
+MSFT	| 50
+```
+
+```q
+/ find the common keys between d1 and d2
+
+d1: `AAPL`IBM`KX! 10 20 30
+d2: `KX`MSFT ! 40 50
+
+key [d1] inter key d2
+
+/ use inter to find common keys
+/ note you have to bracket d1
+```
+
+coalesce ^
+
+```q
+/ coalesce ^ employs upsert semantics to merge 2 dict
+
+d1: `a`b`c!10 20 30
+d2: `b`c`d!200 0N 400
+
+d1^d2
+
+a	| 10
+b	| 200
+c	| 30
+d	| 400
+
+/ so rather than keeping null from d2, retains value from d1
+/ if match on key, takes VALUE from d2
+/ ONLY retains d1 value if d2 value = null
+```
+
+```q
+/ for a list of incoming bids, if the first bid is null, replace this null with 0.0
+
+bids: 0n 1 2 3f
+
+if[null first bids; bids[0]:0.0]
+bids
+0 1 2 3f
+/ if first element in [bids] is null, then upsert index pos 0 with 0.0
+```
+
+Associations
+
+```q
+/ associations provide easy way to extend this solution to handle more than 1 datatype
+/ the following provides initial values for simple lists of
+/ type char symbol int and float
+
+/ assume this dict:
+
+dict: 10 11 6 9h ! ("f"; `first; 0i; 0.0)
+
+10 | "f"
+11 | `first
+6  | 0i
+9  | 0f
+
+/ assume data is a list of incoming data
+/ at runtime, data will be one of these 4 datatypes
+/ null replacement becomes
+
+/ data is a list of syms.
+/ first element is null =`
+data:``a`c`h
+
+if[null first data; data[0]: dict type data]
+data
+`first`a`c`h
+
+/ if first element of data is null
+/ replace index pos 0 of data with
+/ the datatype of data (sym) corresponding value in dict (`first)
+```
+
+```q
+/ Create a dict of error messages
+
+code:`c`t`o!`corruptdata`typemismatch`outofrange
+
+c |	corruptdata
+t	| typemismatch
+o	| outofrange
+
+/ lets say you have a list of errors that occur within a program
+/ you can decode this to make it more readable
+
+errors:`c`o`t`o`o`c
+code[errors]
+`corruptdata`outofrange`typemismatch`outofrange`outofrange`corruptdata
+
+/ converts the error codes into more readable format
+/ by substituiting keys with their associated values
+```
 
