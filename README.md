@@ -6063,4 +6063,196 @@ code[errors]
 / converts the error codes into more readable format
 / by substituiting keys with their associated values
 ```
+Dictionaries and code readability
 
+```q
+/ when dict gets too large they can be difficult to read
+/ can use alternative syntax for easier reading
+/ dict can be generated in more clear and readable format
+/ use the . operator
+
+.[!; flip ((`is;("caught";"in a landslide"));
+           (`this;`no`escape`from);
+           (`real;2 3))]
+----------------------------------
+is	  | ("caught";"in a landslide")
+this	| `no`escape`from
+real	| 2 3
+
+/ so note how the dict is easier to read
+```
+```q
+/ You can combine multiple dictionaries into a nested dictionary
+
+/ Assume the following dicts:
+
+nums: 1 2 3 ! `one`two`three
+
+1 | `one
+2 | `two
+3 | `three
+
+times: 12:00 00:00 ! `noon`midnight
+
+12:00 | `noon
+00:00 | `midnight
+
+dates: 2020.04.03 2020.04.02!`today`yesterday
+
+2020.04.03 | `today
+2020.04.02 | `yesterday
+
+
+/ you can COMBINE these dictionaries into a single dictionary!
+
+dict: `nums`times`dates! (nums; times; dates)
+
+Key	  | Value
+------------------------------------
+nums	 | 1 2 3!`one`two`three
+times	| (12:00u;00:00u)!`noon`midnight
+dates	| (2020.04.03d;2020.04.02d)!`today`yesterday
+
+/ so you set the KEYS as syms of the NAMES of dict
+/ then you set the VALUES as the dictionaries themselves
+```
+```q
+/ 2. From dict, retrieve the word `two
+
+dict[`nums; 2]
+`two
+
+/ index nums dict
+/ then indexing the key 2
+/ to retrieve value `two
+```
+```q
+/ 3. Using reverse lookup, retrieve yesterday's date from dict
+
+dict[`dates]?`yesterday
+2020.04.02
+
+/ so dict[key] ? value
+/ reverse because you "find" value to retrieve key
+```
+
+```q
+/ 4. Assume dict airport:
+
+airport:`JFK`DUB`LHR ! ("John Kennedy"; "Dublin"; "London")
+
+Key	Value
+-------------------
+JFK |	John Kennedy
+DUB	| Dublin
+LHR	| London
+
+/ return the list of airport names corresponding to DUB, LHR, SAN
+
+airport[`DUB`LHR`SAN]
+("Dublin";"London";"")
+
+/ Since no SAN, it returns ""
+```
+
+```q
+/ below are two dictionaries: dictContinents and dict
+
+dictContinents: 1 2 3 4 ! ("eu";"sa";"us";"as")
+dictContinents
+1 |	eu
+2	| sa
+3	| us
+4	| as
+
+dict:`Italy`Spain`Norway`Brazil`US`Yemen`Mexico`Albania`Japan`AU ! 1 1 1 2 3 4 2 1 4 5
+
+Italy   |	1
+Spain	  | 1
+Norway	 | 1
+Brazil	 | 2
+US	     | 3
+Yemen	  | 4
+Mexico	 | 2
+Albania	| 1
+Japan	  | 4
+AU	     | 5
+
+/ 1. Using the 2 dictionaries, retrieve the relevant values based on the associated numbers
+/ 1 = eu, 2 = sa, etc.
+
+newdict: key [dict] ! dictContinents value dict
+
+Italy   |	eu
+Spain	  | eu
+Norway	 | eu
+Brazil	 | sa
+US	     | us
+Yemen	  | as
+Mexico	 | sa
+Albania	| eu
+Japan	  | as
+AU	     |
+
+/ so value dict = retrieves values form dict = 1 1 1 2 3 4 2 1 4 5
+/ then you use those as KEYS, and index retrieve from dictContinents
+/ so dictContinents[1] = "eu" (for example)
+/ so it looks like DictContinents[1 1 1 2 3 4 2 1 4 5]
+/ and that gets you a list of "eu";"eu";"eu";"sa";"us";"as";"sa";"eu";"as";""
+
+/ 2. Replace any missing values in newdict with "na"
+
+newdict[where 0=count each newdict]: enlist"na"
+
+Italy   |	eu
+Spain	  | eu
+Norway	 | eu
+Brazil	 | sa
+US	     | us
+Yemen	  | as
+Mexico	 | sa
+Albania	| eu
+Japan	  | as
+AU	     | na
+
+/ your KEY becomes count each entry of newdict
+/ and if any values = 0 characters
+/ replace with "na"
+```
+
+Dictionary Functions
+
+```q
+/ 1. Create a dyadic func that accepts keys and values and returns a dict
+
+f:{[x;y] x ! y}
+f["kdb";1 2 3]
+
+k | 1 
+d | 2
+b | 3
+```
+
+```q
+/ 2. Create a func that accepts a dict as an argument and returns the key and count of each value
+
+dict:{[x] count each x}
+
+/ now assume this wacky dictionary
+
+`k`d`b!("four";`a`b`c; enlist 7)
+
+k	| four
+d	| `a`b`c
+b	| ",7"
+
+/ try feeding this dict into f and see what you get
+
+dict`k`d`b!("four";`a`b`c; enlist 7)
+k | 4
+d | 3
+b | 1
+```
+
+
+ 
