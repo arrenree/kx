@@ -14,6 +14,7 @@
 11. [Iterators](#iterators)
 12. [Function Control](#funccontrol)
 13. [Dictionaries](#dict)
+14. [Tables](#tables)
 
 
 <hr>
@@ -6254,5 +6255,274 @@ d | 3
 b | 1
 ```
 
+ <a name="tables"></a>
+### 🔴 [14.0] Tables
+[Top](#top)
 
- 
+```q
+example: ([] a: 1 2 3; b: `mini`example`table)
+keyedExample: ([b:`mini`keyboard`example] a: 1 2 3)
+complexTab:([] c:(1 2; 3 4 ; 5 6); d: `more`complex`table
+
+/ 1. what tables do we have in our workspace?
+
+tables[]
+`example`complexTab`keyedExample
+
+/ 2. How many records are in example?
+
+count example
+3
+
+/ 3. What column names are in table example?
+
+cols example
+`a`b
+```
+
+```q
+/ 4. What type is a table? What type is a keyed table?
+
+type example
+98h / table
+
+type keyedExample
+99h / a keyed table is a dictionary!
+```
+
+Unkeyed Tables
+
+```q
+/ an unkeyed table is a list of dictionaries
+/ each column in the table is treated as a vector
+
+example
+a  b
+------
+1  `mini
+2  `example
+3  `table 
+
+/ 5. Use indexing to retrieve values in column b
+
+example[`b]
+`mini`example`table
+
+/ alternative syntax
+
+example`b
+`mini`example`table
+
+/ 6. Use index at depth to retrieve first 2 items from b
+
+example[`b; 0 1]
+`mini`example
+```
+
+Keyed Tables
+
+```q
+/ a keyed table is a special form of dictionary where both keys and values are both tables
+
+keyedExample
+`b`	       | a
+-------------
+`mini`	    | 1
+`keyboard`	| 2
+`example`	 | 3
+
+
+/ first column b is a keyed column
+
+/ 1. Retrieve the list of keys from keyedExample
+
+key keyedExample
+
+b
+----
+mini
+keyed
+example
+
+/ use KEY operator
+
+/ 2. Retrieve list of values from keyedExample
+
+value keyedExample
+a
+--
+1
+2
+3
+```
+
+```q
+/ You can make a keyed table (table to table dictionary)
+
+example
+a  b
+------------
+1  `mini
+2  `example
+3  `table
+
+complexTab
+c   | d
+------------
+1 2 |	more
+3 4	| complex
+5 6	| table
+
+/ 3. by explicitly using the ! keyword with 2 unkeyed tables of equal length
+
+example!complexTab
+
+`a	b`       |	c	d
+--------------------
+`1	mini`	   | 1 2	more
+`2	example` |	3 4	complex
+`3	table`	  | 5 6	table
+
+/ result is a keyed table
+
+```
+
+Keyed Table Operations
+
+```q
+/ 4. What happens when you use FIRST on a keyed table?
+
+keyedExample
+b	       | a
+-------------
+mini	    | 1
+keyboard	| 2
+example	 | 3
+
+first keyedExample
+a | 1
+
+/ returns dict association of our keyed tables "value"
+
+/ same thing as:
+
+first value keyedExample
+a | 1
+```
+
+```q
+/ 5. what happens when you try to index retrieve on a keyed table?
+
+keyedExample[`b]
+a |
+
+/ retrieving columns by name does not work on keyed tables!
+```
+
+```q
+/ 6. Retrieve key column from keyedExample
+
+key keyedExample
+b
+----
+mini
+keyed
+example
+
+/ 7. use key value `mini to retrieve associated 'value table' values
+
+keyedExample[`mini]
+a | 1
+
+keyedExample[`example]
+a | 3
+```
+
+Adding Keys
+
+```q
+/ you can dynamically amend a table to a keyed table by using xkey
+
+newkey:`a xkey example
+
+`a`   | b
+---------------
+`1`   | mini
+`2`   | example
+`3`   | table
+
+/ column a is now keyed
+```
+```q
+/ 1. why is this an error?
+
+newkey[`mini]
+error
+
+/ can't use VALUES for index retrieve
+
+/ need to do this:
+
+newkey?`mini
+
+key | value
+----------
+a   | 1
+
+```
+
+```q
+/ 2. remove the key from newkey
+
+() xkey newkey
+
+a | b
+-------
+1	| mini
+2	| example
+3	| table
+```
+
+```q
+/ 3. what's another way to add/remove keyed columns in a table?
+
+0! newkey
+/ this unkeys the table
+
+1! newkey
+/ this makes the first column keyed
+
+```
+
+```q
+/ 4. What happens when you try to create a table with 1 row?
+
+t:([] sym:`jpm; size: 100; price: 100.0)
+error
+
+/ need to use enlist!!
+
+t:([] sym: enlist`jpm; size: enlist 100; price: enlist 100.0)
+
+sym | size | price
+-------------------
+jpm | 100  | 100
+```
+
+```q
+/ 5. create an empty table with columns sym, size, price
+
+t:([] sym:(); size:(); price:())
+
+/ 6. specify the types associated with each column:
+/ sym = syms, size = longs, price= floats
+
+t:([] sym:`$(); size: `long$(); price: `float$())
+
+/ restrict the datatypes by "casting" empty lists
+```
+
+
+
+
+
