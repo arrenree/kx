@@ -6523,6 +6523,80 @@ t:([] sym:`$(); size: `long$(); price: `float$())
 ```
 
 
+Accessing Columns
+
+```q
+trade: ([]sym:`JPM`IBM`BP;size:100 25 54;price:3.45 5.21 6.33)
+
+sym  size  price
+--------------
+JPM  100   3.45 
+IBM  25    5.21 
+BP   54    6.33
+
+/ 1. retrieve the values from column sym in trade table
+
+trade[`sym]
+trade`sym
+trade.sym
+
+`JPM`IBM`BP
+
+/ all three syntax work
+```
+
+```q
+/ 2. Create a function that sums the values in size column
+
+getSumSizes:{sum x`size}
+getSumSizes trade
+179
+
+/ so formula feeds in trade table as x
+/ and uses the backtick notation to access the size column
+/ then sums values together
+```
+
+```q
+/ 3. Retrieve values from both size and price from trade table
+
+trade`size`price
+
+100  25   54  
+3.45 5.21 6.33
+```
+
+Accessing keyed tables
+
+```q
+tradeKey:([sym:`JPM`IBM`KX]size:10 20 30;price:1 2 3)
+
+`sym` | size  price
+--------------------
+`JPM` | 10    1    
+`IBM` | 20    2    
+`KX`  | 30    3   
+
+/ tradeKey is a keyed table on sym
+```
+
+```q
+/ 1. Retrieve the keys from keyed table tradeKey
+
+key tradeKey
+
+sym
+---
+JPM
+IBM
+KX
+```
+
+```q
+/ 2. Index into the keyed column to retrieve values as a list
+
+(key tradeKey)[`sym]
+`JPM`IBM`KX
 
 
 
