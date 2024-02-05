@@ -6569,6 +6569,10 @@ trade`size`price
 Accessing keyed tables
 
 ```q
+/ keyed tables are accessed via their key, so can't use dot or back tick notation
+```
+
+```q
 tradeKey:([sym:`JPM`IBM`KX]size:10 20 30;price:1 2 3)
 
 `sym` | size  price
@@ -6598,5 +6602,372 @@ KX
 (key tradeKey)[`sym]
 `JPM`IBM`KX
 
+```
 
+```q
+/ 3. Retrieve the values from size column as a list
 
+(value tradeKey)[`size]
+10 20 30
+```
+
+Accessing Rows - Unkeyed Tables
+
+```q
+trade:([] sym:`JPM`IBM`BP; size: 100 25 54; price: 3.45 5.21 6.33)
+
+sym	| size |	price
+-------------------
+JPM |	100	 | 3.45
+IBM |	 25	 | 5.21
+BP	 |  54	 | 6.33
+```
+
+```q
+/ 1. Retrieve the second row as a dictionary
+
+trade 1
+
+Key	  | Value
+-------------
+sym	  | IBM
+size	 | 25
+price	| 5.21
+
+/ retrieves the second row aka index 1
+```
+
+```q
+/ 2. Retrieve the first 2 rows as a table using take #
+
+2#trade
+
+sym | size | price
+-------------------
+JPM	|  100 | 3.45
+IBM	|   25 | 5.21
+```
+
+Accessing Rows - Keyed Tables
+
+```q
+tradeKey:([sym:`JPM`IBM`KX] size: 10 20 30; price: 1 2 3)
+
+sym	| size |	price
+------------------
+JPM	|  10  |	 1
+IBM	|  20 	|  2
+KX	 |  30 	|  3
+```
+
+```q
+/ 1. Retrieve values for key JPM as a dictionary
+
+tradeKey`JPM
+
+size  | 10
+price |  1
+```
+
+```q
+/ 2. Retrieve values for JPM and IBM
+
+tradeKey( [] sym: `JPM`IBM) 
+
+size | price
+-----------
+10   | 1
+20   | 2
+
+/ to retrieve multiple values, use "table retrieve"
+/ this will return the values as a new table
+```
+
+Accessing a Particular Cell - unkeyed table
+
+```q
+sym	| size |	price
+-------------------
+JPM |	100	 | 3.45
+IBM |	 25	 | 5.21
+BP	 |  54	 | 6.33
+
+/ 1. Retrieve the size values for JPM and IBM
+
+trade[`size][0 1]
+trade[0 1; `size]
+
+100 25
+
+/ first specify col name
+/ then specify rows 0 and 1 for JPM, IBM
+```
+
+```q
+/ 2. Modify the size values for JPM to 50 and IBM to 70
+
+trade[0 1;`size]: 50 70
+
+sym	| size |	price
+-------------------
+JPM |	 50	 | 3.45
+IBM |	 70	 | 5.21
+BP	 |  54	 | 6.33
+
+/ index into cell, then use assign : to update value
+```
+
+Accessing a Particular Cell - keyed table
+
+```q
+tradeKey:([sym:`JPM`IBM`KX] size: 10 20 30; price: 1 2 3)
+
+sym	| size |	price
+------------------
+JPM	|  10  |	 1
+IBM	|  20 	|  2
+KX	 |  30 	|  3
+```
+
+```q
+/ 1. Retrieve the size values for JPM and IBM
+
+tradeKey[([] sym: `JPM`IBM); `size]
+10 20
+
+/ first index into syms, then retrieve the sizes
+```
+
+```q
+/ 2. Modify the size values of JPM and IBM to 50 and 70
+
+tradeKey[ ([] sym:`JPM`IBM; `size] : 50 70
+sym	| size |	price
+------------------
+JPM	|  50  |	 1
+IBM	|  70 	|  2
+KX	 |  30 	|  3
+```
+
+Insert / upsert
+
+```q
+/ 1. create an empty table trade with syms, size, and price
+
+trade:([] sym:`$(); size: `long$(); price:`float$())
+
+/ 2. insert `BP, 100, 12.44 into the table
+
+`trade insert (`BP; 100; 12.44)
+
+sym |	size |	price
+-------------------
+BP	 |  100	| 12.44
+
+/ have to use backtick table `trade
+/ in order for insert to work!
+```
+
+```q
+/ 3. insert a dictionary of price: 12.45, sym:MSFT, size:400 to trade
+
+`trade insert `price`sym`size!(12.45; `MSFT; 400)
+
+sym  |	size |	price
+-------------------
+BP	  |  100	| 12.44
+MSFT |  400 | 12.45
+
+/ note the dictionary order doesn't matter
+/ it will automaticaly match with your table schema
+```
+
+```q
+/ 4. Insert 2 rows using a list of lists
+/ IBM, 200, 15.53; AAPL, 300, 14.39
+
+`trade insert (`IBM`AAPL; 200 300; 15.53 14.39)
+
+sym  |	size |	price
+-------------------
+BP	  |  100	| 12.44
+MSFT |  400 | 12.45
+IBM  |  200 | 15.53
+AAPL |  300 | 14.39
+
+/ note still need to backtick trade table
+/ don't need column headers
+```
+
+```q
+/ 5. inserting 2 rows using a dictionary
+/ IBM, 200, 15.53; AAPL, 300, 14.39
+
+`trade insert value `sym`size`price ! ((`MSFT;`JPM); (400; 200); (12.45; 11.5))
+
+sym  |	size |	price
+-------------------
+BP	  |  100	| 12.44
+MSFT |  400 | 12.45
+IBM  |  200 | 15.53
+AAPL |  300 | 14.39
+
+/ note - have to use INSERT VALUE for dictionaries with multiple lines
+/ keys in dict need to match order of columns in table
+```
+
+```q
+/ 6. Insert 2 rows using a dictionary by flipping to a table first
+
+tab: flip `sym`size`price ! ((`MSFT;`JPM); (400; 200); (12.45; 11.5))
+
+`trade insert tab
+
+sym  |	size |	price
+-------------------
+BP	  |  100	| 12.44
+MSFT |  400 | 12.45
+IBM  |  200 | 15.53
+AAPL |  300 | 14.39
+
+/ this seems a bit unnecessary...
+```
+
+```q
+/ 7. only insert the sym and size columns from tab to trade
+
+`trade insert `sym`size#tab
+
+sym  |	size |	price
+-------------------
+BP	  |  100	| 12.44
+MSFT |  400 | 12.45
+IBM  |  200 | 
+AAPL |  300 | 
+
+/ in the event of missing data, nulls are returned
+/ benefit of passing tables as a bulk insert is NOT worrying about correct schema
+```
+
+Upsert
+
+```q
+/ assume empty table trade
+
+trade: ([] sym:`$(); size:`long$(); price: `float$())
+```
+
+```q
+/ 1. upsert 1 row of `GOOG, 230, 15.3 to trade
+
+`trade upsert (`GOOG; 230; 15.4)
+
+sym  |	size	| price
+-------------------
+GOOG	|  230 |	15.4
+
+/ needs backtick table
+/ upsert doesn't need column header
+```
+
+```q
+/ 2. upsert a dictionary into trade with values of `JPM, 100, 10.1
+
+`trade upsert `sym`size`price!(`JPM; 100; 10.1)
+
+sym  |	size	| price
+-------------------
+GOOG	|  230 |	15.4
+JPM  |  100 | 10.1
+```
+
+upsert - Keyed tables
+
+```q
+/ 3. update GOOG with 300, 3.1
+
+`trade upsert (`GOOG; 300; 3.1)
+
+sym  |	size	| price
+-------------------
+GOOG	|  300 |	 3.1
+JPM  |  100 | 10.1
+
+/ one benefit of upsert is it will OVERWRITE the key if already present
+/ rather than throw an error (like an unkeyed table would)
+```
+
+```q
+/ 4. Create a new table, tradeKey2 and add a new key of `FD, 400; 4.1
+
+tradeKey2: tradeKey upsert (`FD; 400; 4.1)
+
+tradeKey
+sym  |	size	| price
+-------------------
+GOOG	|  300 |	 3.1
+JPM  |  100 | 10.1
+
+/ note nothing changed for original tradeKey
+/ CANNOT backtick `tradekey table
+
+tradeKey2
+sym  |	size	| price
+-------------------
+GOOG	|  300 |	 3.1
+JPM  |  100 | 10.1
+FD   |  400 |  4.1
+```
+
+```q
+/ 5. Upsert 2 lines to trade:
+/ KX, 500, 5.1; MSFT, 600, 6.1
+
+`trade upsert ((`KX; 500; 5.1);(`MSFT; 600; 6.1))
+
+sym  |	size	| price
+-------------------
+GOOG	|  300 |	 3.1
+JPM  |  100 | 10.1
+KX   |  500 |  5.1
+MSFT |  600 |  6.1
+
+/ note the syntax is different from upserting a single line
+/ and also different from inserting multiple rows
+/ reminder of insert 2 rows syntax:
+
+`trade insert (`KX`MSFT; 500 600; 5.1 6.1)
+
+```
+
+```q
+/ 6. upsert a dictionary of JPM, 200, 1.1; MS 400, 1.2 to trade
+
+trade upsert `sym`size`price!(`JPM`MS; 200 400; 10.1 1.2)
+error
+/ this syntax DOESN'T WORK!!
+
+/ you have to flip dictionary to table first!
+/ and use "upsert value"
+
+trade upsert flip value `sym`size`price!(`GS`MS; 200 400; 10.1 1.2)
+
+sym  |	size	| price
+-------------------
+GOOG	|  300 |	 3.1
+JPM  |  100 | 10.1
+GS   |  200 | 10.1
+MS   |  400 |  1.2
+
+/ this also works
+
+trade upsert flip `sym`size`price!(`GS`MS; 200 400; 10.1 1.2)
+
+sym  |	size	| price
+-------------------
+GOOG	|  300 |	 3.1
+JPM  |  100 | 10.1
+GS   |  200 | 10.1
+MS   |  400 |  1.2
+
+```
