@@ -6971,3 +6971,236 @@ GS   |  200 | 10.1
 MS   |  400 |  1.2
 
 ```
+
+Tables Problem Set
+
+```
+/ 1. Create a keyed table with the following data using both dictionary and table method
+
+id: 101 102 103 (keyed)
+sym: IBM GE JPM
+price: 10 11 12
+size: 100 200 300
+side: B S B
+
+/ 1a. dictionary method 1
+/ create a dictionary of the keyed columns, then flip to table
+/ then create a dictionary of the values, and flip to table
+/ then create a dictionary between these 2 tables
+
+k:flip (enlist `id)! enlist 101 102 103
+
+id
+---
+101
+102
+103
+
+v:flip `sym`price`size`side!((`IBM`GE`JPM);(10 11 12); (100 200 300);("BSB"))
+
+sym |	price |	size |	side
+-------------------------
+IBM	|   10  |  100	| B
+GE	 |   11	 |  200	| S
+JPM	|   12	 |  300	| B
+
+k!v
+
+`id` | sym |	price |	size |	side
+--------------------------------
+`101`| IBM	|   10  |  100	|  B
+`102`|  GE	|   11	 |  200	|  S
+`103`| JPM	|   12	 |  300	|  B
+
+/ so when you put table ! table
+/ the first table becomes a KEY
+
+/ 1b. Dictionary method 2
+/ create a dictionary, flip it, then key the first column
+
+dict:`id`sym`price`size`side!((101 102 103); (`IBM`GE`JPM);(10 11 12);(100 200 300); (`B`S`B))
+
+Key	  | Value
+---------------------
+id	   | 101 102 103
+sym	  | `IBM`GE`JPM
+price |	   10 11 12
+size	 | 100 200 300
+side	 |      `B`S`B
+
+1 ! flip dict
+
+`id` | sym |	price |	size |	side
+--------------------------------
+`101`| IBM	|   10  |  100	|  B
+`102`|  GE	|   11	 |  200	|  S
+`103`| JPM	|   12	 |  300	|  B
+
+/ 1c. Table Method
+
+t: ([id: 101 102 103] sym:`IBM`GE`JPM; price: 10 11 12; size: 100 200 300; side: `BSB)
+
+`id` | sym |	price |	size |	side
+--------------------------------
+`101`| IBM	|   10  |  100	|  B
+`102`|  GE	|   11	 |  200	|  S
+`103`| JPM	|   12	 |  300	|  B
+```
+
+```q
+/ 2. Confirm your table is a keyed table
+
+
+99h ~ type k
+1b
+
+/ 99h = dictionary aka keyed table
+```
+
+```q
+/ Given the quote table
+
+quote:([] sym:`IBM.L`VOD.L`VED.L; price: 50.3 12.1 151.56; size: 1000 200 60)
+
+sym   |	 price  |	size
+----------------------
+IBM.L |	   50.3 | 1000
+VOD.L	|    12.1 |  200
+VED.L	|   151.5	|   60
+```
+
+```q
+/ 3. Show different ways to retrieve the prices from quote table as a list
+
+quote`price
+quote.price
+quote[`price]
+
+50.3 12.1 151.56
+```
+
+```q
+/ 4. rename the first 2 columns of quote to SYM and PRICE
+
+`SYM`PRICE xcol quote
+
+SYM   |	 PRICE  |	size
+----------------------
+IBM.L |	   50.3 | 1000
+VOD.L	|    12.1 |  200
+VED.L	|   151.5	|   60
+```
+
+```q
+/ 5. Order the quote table descending by size
+
+`size xdesc quote
+
+SYM   |	 PRICE  |	size
+----------------------
+IBM.L |	   50.3 | 1000
+VOD.L	|    12.1 |  200
+VED.L	|   151.5	|   60
+```
+
+```q
+/ 6. Re-order the columns so price and size are the other way around
+
+`sym`size`price xcols quote
+
+sym	  | size |	price
+--------------------
+IBM.L |	1000 |	 50.3
+VOD.L	|  200	|  12.1
+VED.L	|   60	| 151.5
+
+/ xcols as an "s" for re-SORTING
+```
+
+```q
+/ Given the 2 tables:
+t3: ([] sym:`a`b`c`d; price: 1 2 3 4; size: 100 200 300 400)
+t4: ([] sym:`a`c`f; price: 11 3 11; size: 100 300 1000)
+
+t3
+sym |	price |	size
+------------------
+a	  |    1  |	100
+b	  |    2	 | 200
+c	  |    3	 | 300
+d   |   	4	 | 400
+
+t4
+sym |	price |	size
+------------------
+a	  |   11  |	100
+c	  |   3	  | 200
+f	  |   11	 | 300
+
+/ 7. Retrieve rows where t3 and t4 are the same
+
+t3 in t4
+0010b
+
+/ compares ROWS where values match (3rd row = c)
+
+t3 where t3 in t4
+
+sym |	price	| size
+------------------
+c	  |   3	  | 300
+
+/ alternative solution
+
+t3 inter t4
+
+sym |	price	| size
+------------------
+c	  |   3	  | 300
+
+/ finding the intersection also works
+```
+
+```q
+/ 8. Retrieve the row indices of t3 which are in t4
+
+where t3 in t4
+,2
+
+/ 3rd row
+```
+
+```q
+/ 9. Combine the two tables, including all rows but don't dupe
+
+t3 union t4
+
+sym |	price |	size
+-------------------
+ a 	|   1  	|  100
+ b	 |   2  	|  200
+ c	 |   3  	|  300
+ d	 |   4  	|  400
+ a	 |  11  	|  100
+ f	 |  11  	| 1000
+
+/ notice includes both rows of a
+/ both rows of c the same so didnt dupe
+```
+
+```q
+/ 10. Retrieve the rows in t3 except for the ones in t4
+
+t3 except t4
+
+sym |	price |	size
+-------------------
+ a 	|   1  	|  100
+ b	 |   2  	|  200
+ d	 |   4  	|  400
+```
+
+```q
+/ 11. 
+
+
