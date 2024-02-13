@@ -7200,7 +7200,278 @@ sym |	price |	size
  d	 |   4  	|  400
 ```
 
-```q
-/ 11. 
+Table Problem Set 2 (Keyed Tables)
 
+```q
+tradeKey: ([id:100 102 103 104 105] sym:`IBM`GE`JPM`BP`JPM; price: 10 20 30 40 50; size: 100 200 300 400 500; side: `B`S`B`S`B)
+
+`id`  |	sym |	price |	size |	side
+-------------------------------
+`100`	| IBM	|   10  | 	100 |	 B
+`102`	| GE	 |   20  |  200	|  S
+`103`	| JPM	|   30  |  300	|  B
+`104`	| BP	 |   40  |  400	|  S
+`105`	| JPM	|   50  |  500	|  B
+
+/ tradeKey is a keyed table with key column id
+```
+
+```q
+/ 1. Extract the keys as a table from tradeKey
+
+key tradeKey
+
+`id`
+-----
+`100`
+`102`	
+`103`	
+`104`
+`105`
+```
+
+```q
+/ 2. Extract the VALUES as a table from tradeKey
+
+value tradeKey
+
+sym |	price |	size |	side
+-------------------------------
+IBM	|   10  | 	100 |	 B
+GE	 |   20  |  200	|  S
+JPM	|   30  |  300	|  B
+BP	 |   40  |  400	|  S
+JPM	|   50  |  500	|  B
+
+/ only values from table
+```
+
+```q
+/ 3. Extract the values of sym as a list
+
+(value tradeKey)[`sym]
+`IBM`GE`JPM`BP`JPM
+
+/ first extract the VALUES from key table
+/ then extract the `sym column
+```
+
+```q
+/ 4. Extract the row values for id 102 and 105
+
+tradeKey[([] id: 102 105)]
+
+sym |	price	| size |	side
+-------------------------
+GE	 |   20	 |  200 |	 S
+JPM	|   50	 |  500	|  B
+
+/ want to retrieve VALUES based on specific KEYS
+/ so use table search method
+/ specify the KEY/id column 
+/ returns the associated values
+```
+
+```q
+/ 5. Extract the price value for tradeKey id 102
+
+tradeKey[ ([] id: enlist 102); `price]
+,20
+
+/ use table search method
+/ start from Key column id (need to use enlist)
+/ close the parenthesis, then specify the `price column
+```
+
+```q
+/ 6. Modify the side for tradeKey id 102 to B
+
+tradeKey[ ([] id: enlist 102); `side]: enlist`B
+
+/ use table search for keyed tables
+/ specify key column id (need to use enlist)
+/ specify column name = `side
+/ use assign : to update to `B (need enlist)
+```
+
+```q
+/ 7. unkey the tradeKey table and rename as unkeyedTrade
+
+0!tradeKey
+
+/or
+
+() xkey tradeKey
+```
+
+Problem Set Part 3 
+Appending records to tables
+
+```q
+t1:([] sym:`a`b`c`d`c`d; price: 1 2 3 4 8 9f)
+
+t1
+sym |	price
+-----------
+ a 	|  1.0
+ b 	|  2.0
+ c 	|  3.0
+ d 	|  4.0
+ c 	|  8.0
+ d 	|  9.0
+```
+
+```q
+/ 1. Use the [insert syntax] to insert `e`g and prices 5, 7
+
+`t1 insert (`e`g; 5 7f)
+sym |	price
+-----------
+ a 	|  1.0
+ b 	|  2.0
+ c 	|  3.0
+ d 	|  4.0
+ c 	|  8.0
+ d 	|  9.0
+ e  |  5.0
+ g  |  7.0
+```
+
+```q
+/ 2. Use the [table insert] to insert `e`g and prices 5, 7
+
+`t1 insert ([] sym:`e`g; price: 5 7f)
+sym |	price
+-----------
+ a 	|  1.0
+ b 	|  2.0
+ c 	|  3.0
+ d 	|  4.0
+ c 	|  8.0
+ d 	|  9.0
+ e  |  5.0
+ g  |  7.0
+```
+
+```q
+/ 3. Use the [join , syntax] to insert `e`g and prices 5, 7
+
+`t1,: ([] sym:`e`g; price: 5 7f)
+
+sym |	price
+-----------
+ a 	|  1.0
+ b 	|  2.0
+ c 	|  3.0
+ d 	|  4.0
+ c 	|  8.0
+ d 	|  9.0
+ e  |  5.0
+ g  |  7.0
+```
+
+```q
+/ 4. Extract the 3rd row from t1
+
+t1 2
+sym   | `c
+price | 3f
+```
+
+TradeKey Table Problem Set
+
+```q
+tradeKey:([id:100 102 103 104 105] sym:`IBM`GE`JPM`BP`JPM; price: 10 20 30 40 50; size: 100 200 300 400 500; side: `B`S`B`S`B)
+
+`id`  |	sym |	price |	size |	side
+-------------------------------
+`100`	| IBM	|   10  | 	100 |	 B
+`102`	| GE	 |   20  |  200	|  S
+`103`	| JPM	|   30  |  300	|  B
+`104`	| BP	 |   40  |  400	|  S
+`105`	| JPM	|   50  |  500	|  B
+```
+
+```q
+/ 1. Add the following rows to keyed table tradeKey
+
+`id`  |	sym |	price |	size |	side
+-------------------------------
+`111`	| BP	 |   81  | 	111 |	 B
+`112`	| JPM	|   65  |  156	|  B
+
+`tradeKey insert flip `id`sym`price`size`side!(111 112; `BP`JPM; 81 65; 111 156; `B`B)
+
+`id`  |	sym |	price |	size |	side
+-------------------------------
+`100`	| IBM	|   10  | 	100 |	 B
+`102`	| GE	 |   20  |  200	|  S
+`103`	| JPM	|   30  |  300	|  B
+`104`	| BP	 |   40  |  400	|  S
+`105`	| JPM	|   50  |  500	|  B
+`111`	| BP	 |   81  | 	111 |	 B
+`112`	| JPM	|   65  |  156	|  B
+
+```
+
+```q
+/ 2. Update the information for tradeKey id 101 to `BP, 85, 115, B
+
+`tradeKey upsert (101; `BP; 85; 115; `B)
+
+`id`  |	sym |	price |	size |	side
+-------------------------------
+`100`	| IBM	|   10  | 	100 |	 B
+`102`	| GE	 |   20  |  200	|  S
+`103`	| JPM	|   30  |  300	|  B
+`104`	| BP	 |   40  |  400	|  S
+`105`	| JPM	|   50  |  500	|  B
+`111`	| BP	 |   81  | 	111 |	 B
+`112`	| JPM	|   65  |  156	|  B
+`101` | BP  |   85  |  115 |  B
+```
+
+Tables Function Problem Set
+
+```q
+/ 1. Create function returnKeyTable, which takes inputs:
+/ t - table name (as a symbol)
+/ k - keys to key on
+
+/ for example:
+
+trade table:
+sym |	price |	size |	side
+--------------------------
+IBM	|   10  | 	100 |	 B
+GE	 |   20  |  200	|  S
+JPM	|   30  |  300	|  B
+
+returnKeyTable[`trade; `sym]
+`sym` |	price |	size |	side
+--------------------------
+`IBM`	|   10  | 	100 |	 B
+`GE`	 |   20  |  200	|  S
+`JPM`	|   30  |  300	|  B
+
+/ returns keyed version of table
+```
+```q
+/ solution:
+returnKeyedTable: {[t; k] k xkey get t}
+
+/ testing out the solution:
+/ assume table trade:
+
+trade:([] sym: `IBM`GE`JPM; price: 10 20 30; size: 100 200 300; side: `B`S`B)
+
+returnKeyedTable[`trade;`sym]
+
+`sym` |	price |	size |	side
+--------------------------
+`IBM`	|   10  | 	100 |	 B
+`GE`	 |   20  |  200	|  S
+`JPM`	|   30  |  300	|  B
+
+```
 
