@@ -7566,5 +7566,212 @@ price	| size
 --------------
 93.94	| 54.49
 
+```
+
+Where Clause
+
+```q
+/ where allows us to specify conditions and filter our data accordingly
+/ always use , instead of and 
+
+```
+
+```q
+/ 7. Retrieve rows for apple where size is greater than 70 on 2020.01.02 from trade file
+
+select from trade where date= 2020.01.02, sym=`AAPL, size>70
+
+date	      |  sym	|      time    | price	| size	| stop	| cond	| ex
+-------------------------------------------------------------------
+2020-01-02	| AAPL	| 09:30:00.025	| 83.87	|  74 	|  0b 	|   J 	|  N
+2020-01-02	| AAPL	| 09:30:00.031	| 83.87	|  81 	|  0b 	|   K 	|  N
+2020-01-02	| AAPL	| 09:30:00.594	| 83.85 | 	72 	|  0b 	|   A 	|  N
+
+/ always have date FIRST - saves time on query
+```
+
+```q
+/ 8. retrieve the vwap price for Google from the trade table
+
+select vwap: size wavg price from trade where sym=`GOOG
+
+vwap
+----
+69.072
+
+/ wave syntax = size wavg price
+```
+
+By Clause
+
+```q
+/ 1. retrieve the maxiumum size by sym from daily
+
+select max size by sym from daily
+
+sym	 | size
+-------------
+AAPL |	582043
+AIG	 | 584179
+AMD	 | 602276
+DELL	| 593427
+
+/ by clause key's the grouping (sym)
+```
+
+```q
+/ 2. Retrieve the last 5 days closing price by sym from daily
+
+select -5 sublist close by sym from daily
+
+sym  |	close
+----------------------------------
+AAPL	| 82.63 84.32 85.67 87.88 90.95
+AIG	 | 31.14 31.87 31.48 31.66 32.76
+AMD 	| 40.21 43.05 43.09 45.68 43.35
+
+/ use 5 sublist to limit the results to 5
+
+/ can re-write as a function to feed into qsql query
+
+last5:{-5 sublist raze x}
+
+select last5days:last5 close by sym from daily
+
+```
+```q
+/ 3. Retrieve the max price, min price, and total number of trades by sym from trade
+
+select maxp: max price, minp: min price, num: count i by sym from trade
+
+sym	 | maxp	 |  minp	| num
+-----------------------------
+AAPL	| 93.94	| 77.33	| 217876
+AIG 	| 35.51	| 26.36	| 218281
+AMD	 | 47.52	| 29.83	| 218164
+DELL	| 13.74	| 10.92	| 218326
+
+/ use virtual column i to count rows
+```
+
+xbar
+
+```q
+/ 1. Retrieve the number of trades, vwap price grouped by syms and 15 min time windows for the most recent date
+
+select cnt: count i, vwap: size wavg price by sym, 15 xbar time.minute from trade where date=last date
+
+sym	 | minute |	cnt |	vwap
+----------------------------
+AAPL	| 09:30 	| 919	| 87.08
+AAPL	| 09:45 	| 504	| 85.58
+AAPL	| 10:00 	| 451	| 85.00
+AAPL	| 10:15	 | 393	| 82.53
+
+/ need to first convert time to minutes
+/ then group xbar by 15
+```
+
+```q
+/ 2. show the total volume every 1.5 minutes from trade table on Jan 2, 2020
+
+/ first check the meta of the table to figure out what datatype time is
+
+meta trade
+
+c    |	t	| f	| a
+----------------
+date |	d		
+sym	 | s	     	p
+time |	t		
+price|	f		
+size	| j		
+stop	| b		
+cond	| c		
+
+/ so time = t = time datatype
+
+/ if you simply do 1.5 xbar time, you get a weird result for time output
+
+select sum size by sym, 1.5 xbar time from trade where date=2020.01.02
+
+sym	 | time	       | size
+-------------------------
+AAPL	| 2.5650015E7	| 17
+AAPL	| 2.5650018E7	| 74
+AAPL	| 2.5650021E7	| 57
+
+/ you need to first cast the 1.5 minute as 1 hour 30 timespan to `time
+/ and cast time to a timespan
+
+select sum size by sym,`time$0D00:01:30.000 xbar `timespan$time from trade where date=2020.01.02
+
+sym	| time	        | size
+--------------------------
+AAPL	|09:30:00.000 |	9648
+AAPL	|09:31:30.000	| 6110
+AAPL	|09:33:00.000	| 4648
+
+```
+
+```q
+/ 3. Retrieve the number of trades by 10 trade sizes where date = last date from trade
+
+select count i by 10 xbar size from trade where date = last date
+
+size	| x
+------------
+ 10 	| 17068
+ 20 	| 16688
+ 30 	| 16595
+```
+
+Exec
+
+```q
+/ exec is simliar to select, but returns a list, a dictionary, or a table depending on the query
+/ used primarily to extract data from the table format
+/ or to restructure data
+
+/ exec 1 column = list
+/ exec > 1 column = dictionary
+```
+
+```q
+/ 1. Retrieve trade sizes from daily as a list
+
+exec size from daily
+536408 532160 530579 531534...
+
+/ exec outputs results as a list
+```
+
+```q
+/ 2. Retrieve the size and price from daily as a dictionary (or list of lists)
+
+exec size, price from daily
+
+key   | size
+-------------------------
+size  | 53934 39452 34434
+price | 3134 32943 293423
+```
+
+```q
+/ 3. Retrieve 3 results of price and size grouped by sym as a dictionary from daily
+
+exec 3 sublist price, 3 sublist size by sym from daily
+
+Key	| Price                 | Size
+------------------------------------------
+AAPL	| 680.67 801.30 818.24 | 100 200 300
+AIG 	| 962.71 994.45 761.57 | 100 200 300
+AMD 	| 961.13 411.79 609.19 | 100 200 300
+
+/ use sublist to limit output to 3 results
+```
+
+
+
 
 
