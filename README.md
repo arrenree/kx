@@ -15,7 +15,7 @@
 12. [Function Control](#funccontrol)
 13. [Dictionaries](#dict)
 14. [Tables](#tables)
-
+15. [QSQL](#qsql)
 
 <hr>
 
@@ -6255,7 +6255,7 @@ d | 3
 b | 1
 ```
 
- <a name="tables"></a>
+<a name="tables"></a>
 ### 🔴 [14.0] Tables
 [Top](#top)
 
@@ -7474,4 +7474,97 @@ returnKeyedTable[`trade;`sym]
 `JPM`	|   30  |  300	|  B
 
 ```
+
+<a name="qsql"></a>
+### 🔴 [15.0] QSQL
+[Top](#top)
+
+```q
+\l buildtaq.q
+\l ./db/taq
+
+/ create local partitioned db in ./db
+/ partitioned tables: `trade`quote`nbbo
+/ flat tables: `daily`depth`mas
+```
+
+```q
+/ 1. check what tables are in q script
+
+tables[]
+`daily`depth`mas`nbbo`quote`td`trade
+
+```
+
+```q
+/ 2. Create a dictionary that sets the keys as table names and the values as the number of rows per table
+
+tables[]! count each value each tables[]
+
+Key	  | Value
+---------------
+daily	| 330
+depth	| 1000
+mas	  | 15
+nbbo	 | 9807714
+quote	| 16336312
+td	   | 330
+trade	| 3268145
+
+```
+
+```q
+/ 3. Retrieve the date, sym, open, and size from daily file
+
+select date, sym, open, size from daily
+
+date       |	sym	 |  open | size
+----------------------------------
+2020-01-02	| AAPL	| 83.88	| 536408
+2020-01-02	| AIG	 | 26.97	| 532160
+2020-01-02	| AMD	 | 33.01	| 530579
+```
+
+```q
+/ 4. Rename date to dt, sym to stock, size to sz, and mid, which is the avg of high and low from daily
+
+select dt: date, stock: sym, sz: size, mid: 0.5*high+low from daily
+
+dt	        | stock	|   sz	  |  mid
+-------------------------------------
+2020-01-02	|  AAPL	| 536408	|  83.07
+2020-01-02	|  AIG 	| 532160	| 28.105
+2020-01-02	|  AMD 	| 530579	|  33.11
+
+/ can rename columns
+/ and perform operations 0.5* high+low
+```
+
+```q
+/ 5. Retrieve sym, close, size, and a new boolean column called asym
+/ which is true if sym starts with "A" and false otherwise.
+/ Assign this output to a new table aDaily
+
+select sym, close, size, asym: sym like "A*" from daily
+
+sym	 | close	|   size	| asym
+-----------------------------
+AAPL	| 86.22	| 536408	|  1b
+AIG	 | 29.01	| 532160	|  1b
+DELL	| 12.07	| 531534	|  0b
+
+/ use the "like" syntax
+/ A* = starts with A and wildcard after
+```
+
+```q
+/ 6. Retrieve the max price and avg trade size from trade
+
+select max price, avg size from trade
+
+price	| size
+--------------
+93.94	| 54.49
+
+
 
