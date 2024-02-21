@@ -7771,7 +7771,111 @@ AMD 	| 961.13 411.79 609.19 | 100 200 300
 / use sublist to limit output to 3 results
 ```
 
+Update
 
+```q
+/ update is used to modify existing rows or add new columns to a table
+```
 
+```q
+/ 1. from daily, retrieve 5 orders and update the price to neg if sym = AAPL
 
+5 sublist daily
+
+/ retrieves 5 records from daily
+
+5 sublist update neg[price] from daily where sym=`AAPL
+
+date	      | sym	 |  open	|  high	|  low	 |close	| price	| size
+-----------------------------------------------------------------
+2020-01-02	| AAPL	| 83.88	| 87.45	| 78.69	|86.22 |	-4.45 |	536408
+2020-01-02	| AIG	 | 26.97	| 29.85	| 26.36	|29.01	|  1.51 | 532160
+2020-01-02	| AMD	 | 33.01	| 34.92	| 31.3	 |33.94	|  1.74 | 530579
+2020-01-02	| DELL	| 12.0	 | 13.56	| 11.52	|12.07	| 70.38 | 531534
+2020-01-02	| DOW	 | 19.99	| 21.17	| 19.49	|20.45	|  1.10	| 539534
+
+/ syntax = update column names = update neg[price]
+/ to save changes, need to backtick table
+/ otherwise doesn't save 
+```
+
+```q
+/ 2. update daily to have a new column called mid, which is the midpoint btwn
+/ the high and low prices
+
+update mid: 0.5*high+low from daily
+
+sym	 | high	 |  low	 |	mid
+----------------------------
+AAPL	| 87.45	| 78.69	| 83.07
+AIG	 | 29.85	| 26.36	| 28.11
+AMD	 | 34.92	|  31.3	| 33.11
+
+/ updating a new column will add it
+
+```
+
+```q
+/ 3. persist a change to daily so all DOW values are half the price
+
+update price:0.5*price from `daily where sym=`DOW
+
+sym	 | high	 |  low	 |	 mid  | price
+-----------------------------------
+AAPL	| 87.45	| 78.69	| 83.07 | 44,525
+AIG	 | 29.85	| 26.36	| 28.11 | 15,158
+AMD	 | 34.92	|  31.3	| 33.11 | 17,477
+
+/ remember to `daily to persist changes
+```
+Delete
+
+```q
+/ delete removes whole rows or whole columns from table
+/ use WHERE to delete 
+```
+
+```q
+/ 1. retrieve 5 rows from daily where you remove dates 2020.01.02
+
+5 sublist delete from daily where date=2020.01.02
+
+date    	  | sym	 | open	 |  high	| low	
+-----------------------------------------
+2020-01-03	| AAPL	| 86.14	| 93.72	| 83.81	
+2020-01-03	| AIG	 | 29.0	 | 31.61	| 27.77	
+2020-01-03	| AMD	 | 33.9	 | 39.34	| 33.13
+
+```
+
+fby
+
+```q
+/ fby allows us to avoid multiple aggregation
+/ syntax: (aggregation; data) fby group
+
+```
+
+```q
+/ 1. retrieve from trade where the size is less than the avg size on the exchange they traded
+
+select from trade where date = last date, size < (avg;size) fby ex
+
+date	      | sym	 | time	        | price
+----------------------------------------
+2020-01-31	| AAPL	| 09:30:00.068	| 87.75
+2020-01-31	| AAPL	| 09:30:00.084	| 87.73
+2020-01-31	| AAPL	| 09:30:00.091	| 87.77
+```
+
+```q
+/ 2. use fby to find the largest volume in our trade table where date=last date for which
+/ the price is greater than the avg price for that symbol
+
+select max size from trade where date = last date, price > (avg; price) fby sym
+
+size
+----
+99
+```
 
