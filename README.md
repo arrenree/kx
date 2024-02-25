@@ -7499,6 +7499,10 @@ tables[]
 ```q
 / 2. Create a dictionary that sets the keys as table names and the values as the number of rows per table
 
+/ hint:
+/ dictionaries are created by key ! range
+/ how do you extract table names?
+
 tables[]! count each value each tables[]
 
 Key	  | Value
@@ -7510,6 +7514,17 @@ nbbo	 | 9807714
 quote	| 16336312
 td	   | 330
 trade	| 3268145
+
+/ if you do this instead:
+
+count each tables[]
+1 1 1 1 1
+
+/ it retrieves the number of tables
+/ you want to count the rows in each table from each tables[]
+
+count each value each tables[]
+330 1000 15 9807714 16336312 330 3268145
 
 ```
 
@@ -7541,7 +7556,7 @@ dt	        | stock	|   sz	  |  mid
 ```
 
 ```q
-/ 5. Retrieve sym, close, size, and a new boolean column called asym
+/ 5. Retrieve sym, close, size, and a new boolean column called ASYM
 / which is true if sym starts with "A" and false otherwise.
 / Assign this output to a new table aDaily
 
@@ -7553,7 +7568,8 @@ AAPL	| 86.22	| 536408	|  1b
 AIG	 | 29.01	| 532160	|  1b
 DELL	| 12.07	| 531534	|  0b
 
-/ use the "like" syntax
+/ when using boolean comparison outputs as a column, 
+/ use LIKE syntax (sym like "A*"
 / A* = starts with A and wildcard after
 ```
 
@@ -7566,6 +7582,7 @@ price	| size
 --------------
 93.94	| 54.49
 
+/ can perform operations directly on columns
 ```
 
 Where Clause
@@ -7573,11 +7590,10 @@ Where Clause
 ```q
 / where allows us to specify conditions and filter our data accordingly
 / always use , instead of and 
-
 ```
 
 ```q
-/ 7. Retrieve rows for apple where size is greater than 70 on 2020.01.02 from trade file
+/ 1. Retrieve rows for apple where size is greater than 70 on 2020.01.02 from trade file
 
 select from trade where date= 2020.01.02, sym=`AAPL, size>70
 
@@ -7591,7 +7607,10 @@ date	      |  sym	|      time    | price	| size	| stop	| cond	| ex
 ```
 
 ```q
-/ 8. retrieve the vwap price for Google from the trade table
+/ 2. Retrieve the vwap price for Google from the trade table
+/ hint:
+/ can use wavg function to calc vwap
+/ syntax: size wavg price 
 
 select vwap: size wavg price from trade where sym=`GOOG
 
@@ -7599,13 +7618,14 @@ vwap
 ----
 69.072
 
-/ wave syntax = size wavg price
+/ your SELECT determine what you output
+/ since you only selected vwap, output will be single column
 ```
 
 By Clause
 
 ```q
-/ 1. retrieve the maxiumum size by sym from daily
+/ 1. Retrieve the maxiumum size by sym from daily
 
 select max size by sym from daily
 
@@ -7630,17 +7650,25 @@ AAPL	| 82.63 84.32 85.67 87.88 90.95
 AIG	 | 31.14 31.87 31.48 31.66 32.76
 AMD 	| 40.21 43.05 43.09 45.68 43.35
 
-/ use 5 sublist to limit the results to 5
-
-/ can re-write as a function to feed into qsql query
-
-last5:{-5 sublist raze x}
-
-select last5days:last5 close by sym from daily
+/ use [5 sublist] to limit the results to 5
+/ and [-5 sublist] to limit results to last 5
 
 ```
+
 ```q
-/ 3. Retrieve the max price, min price, and total number of trades by sym from trade
+
+/ 3. Re-write the last 5 query function, then feed into a QSQL query
+
+last5:{-5 sublist x}
+
+select last5 close by sym from daily
+
+/ last5 a function to limit x to last 5 rows
+/ then feed that function into your SQSL query
+```
+
+```q
+/ 4. Retrieve the max price, min price, and total number of trades by sym from trade
 
 select maxp: max price, minp: min price, num: count i by sym from trade
 
@@ -7651,13 +7679,19 @@ AIG 	| 35.51	| 26.36	| 218281
 AMD	 | 47.52	| 29.83	| 218164
 DELL	| 13.74	| 10.92	| 218326
 
-/ use virtual column i to count rows
+/ notice you dont need to "sum i" to get the total number of trades
+/ it will sum the i simply by count i
+
+select count i from trade
+326815
+
+/ even if you do a simply count i query, it will aggregate the total number of rows
 ```
 
 xbar
 
 ```q
-/ 1. Retrieve the number of trades, vwap price grouped by syms and 15 min time windows for the most recent date
+/ 1. Retrieve the number of trades, vwap price grouped by syms and 15 min time windows for the most recent date from the trade file
 
 select cnt: count i, vwap: size wavg price by sym, 15 xbar time.minute from trade where date=last date
 
@@ -7673,9 +7707,16 @@ AAPL	| 10:15	 | 393	| 82.53
 ```
 
 ```q
-/ 2. show the total volume every 1.5 minutes from trade table on Jan 2, 2020
+/ 2. Show the total volume every 1.5 minutes from trade table on Jan 2, 2020
 
-/ first check the meta of the table to figure out what datatype time is
+/ hint 1:
+/ total volume = sum size
+/ total number of trades = count i
+
+/ hint 2:
+/ need to be careful with time vs timespan datatypes 
+
+/ A. First check the meta of the table to figure out what datatype time is
 
 meta trade
 
@@ -7690,7 +7731,7 @@ stop	| b
 cond	| c		
 
 / so time = t = time datatype
-
+/ you CANNOT simply do 1.5 xbar time.minute
 / if you simply do 1.5 xbar time, you get a weird result for time output
 
 select sum size by sym, 1.5 xbar time from trade where date=2020.01.02
@@ -7701,8 +7742,37 @@ AAPL	| 2.5650015E7	| 17
 AAPL	| 2.5650018E7	| 74
 AAPL	| 2.5650021E7	| 57
 
-/ you need to first cast the 1.5 minute as 1 hour 30 timespan to `time
-/ and cast time to a timespan
+/ B. need to first cast time to timespan
+
+`timespan$time
+
+time                
+--------------------
+0D09:30:00.021000000
+0D09:30:00.025000000
+0D09:30:00.028000000
+
+/ C. then perform your 1.5 minute xbar as a timespan
+
+0D00:01:30.000 xbar `timespan$time
+
+time
+------------------
+09:30:00.000000000
+09:31:30.000000000
+09:33:00.000000000
+09:34:30.000000000
+
+/ D. then cast this timespan xbar grouping back into time
+
+time
+------------
+09:30:00.000
+09:31:30.000
+09:33:00.000
+09:34:30.000
+
+/ E. so putting it all together looks like this:
 
 select sum size by sym,`time$0D00:01:30.000 xbar `timespan$time from trade where date=2020.01.02
 
@@ -7717,6 +7787,10 @@ AAPL	|09:33:00.000	| 4648
 ```q
 / 3. Retrieve the number of trades by 10 trade sizes where date = last date from trade
 
+/ hint: 
+/ number of trades = count i
+/ grouping by 10 trade size = 10 xbar size
+
 select count i by 10 xbar size from trade where date = last date
 
 size	| x
@@ -7729,10 +7803,8 @@ size	| x
 Exec
 
 ```q
-/ exec is simliar to select, but returns a list, a dictionary, or a table depending on the query
+/ exec is simliar to select, but returns a list, a dictionary, or a table
 / used primarily to extract data from the table format
-/ or to restructure data
-
 / exec 1 column = list
 / exec > 1 column = dictionary
 ```
@@ -7743,7 +7815,7 @@ Exec
 exec size from daily
 536408 532160 530579 531534...
 
-/ exec outputs results as a list
+/ exec 1 column (size) outputs results as a LIST
 ```
 
 ```q
@@ -7755,6 +7827,8 @@ key   | size
 -------------------------
 size  | 53934 39452 34434
 price | 3134 32943 293423
+
+/ exec > 2 columns (price + size) = output is a dictionary
 ```
 
 ```q
@@ -7769,12 +7843,16 @@ AIG 	| 962.71 994.45 761.57 | 100 200 300
 AMD 	| 961.13 411.79 609.19 | 100 200 300
 
 / use sublist to limit output to 3 results
+/ need to use sublist for EACH column query
+/ so 3 sublist price, 3 sublist size
 ```
 
 Update
 
 ```q
-/ update is used to modify existing rows or add new columns to a table
+/ update is modifies existing columns
+/ or adds new columns to a table
+/ does NOT save the underlying tables unless you backtick the table
 ```
 
 ```q
@@ -7794,9 +7872,11 @@ date	      | sym	 |  open	|  high	|  low	 |close	| price	| size
 2020-01-02	| DELL	| 12.0	 | 13.56	| 11.52	|12.07	| 70.38 | 531534
 2020-01-02	| DOW	 | 19.99	| 21.17	| 19.49	|20.45	|  1.10	| 539534
 
-/ syntax = update column names = update neg[price]
-/ to save changes, need to backtick table
-/ otherwise doesn't save 
+/ notice the syntax
+/ update does NOT go in the front (5 sublist does)
+/ first = limit outut (5 sublist) 
+/ then update the price column with a neg[price]
+/ neg[price] turns the column negative
 ```
 
 ```q
@@ -7811,8 +7891,7 @@ AAPL	| 87.45	| 78.69	| 83.07
 AIG	 | 29.85	| 26.36	| 28.11
 AMD	 | 34.92	|  31.3	| 33.11
 
-/ updating a new column will add it
-
+/ "updating" a new column will append the column
 ```
 
 ```q
@@ -7828,11 +7907,12 @@ AMD	 | 34.92	|  31.3	| 33.11 | 17,477
 
 / remember to `daily to persist changes
 ```
+
 Delete
 
 ```q
-/ delete removes whole rows or whole columns from table
-/ use WHERE to delete 
+/ delete removes rows or whole columns from table
+/ specify parameters to delete using the WHERE clause 
 ```
 
 ```q
@@ -7846,6 +7926,8 @@ date    	  | sym	 | open	 |  high	| low
 2020-01-03	| AIG	 | 29.0	 | 31.61	| 27.77	
 2020-01-03	| AMD	 | 33.9	 | 39.34	| 33.13
 
+/ NOTE! the delete doesnt go in the front
+/ rather, the 5 sublist does!
 ```
 
 fby
@@ -7853,11 +7935,10 @@ fby
 ```q
 / fby allows us to avoid multiple aggregation
 / syntax: (aggregation; data) fby group
-
 ```
 
 ```q
-/ 1. retrieve from trade where the size is less than the avg size on the exchange they traded
+/ 1. Retrieve from trade where the size is less than the avg size on the exchange they traded on the last date
 
 select from trade where date = last date, size < (avg;size) fby ex
 
@@ -7866,6 +7947,8 @@ date	      | sym	 | time	        | price
 2020-01-31	| AAPL	| 09:30:00.068	| 87.75
 2020-01-31	| AAPL	| 09:30:00.084	| 87.73
 2020-01-31	| AAPL	| 09:30:00.091	| 87.77
+
+/ notice the fby goes at the end, in the where clause
 ```
 
 ```q
