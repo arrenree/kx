@@ -7807,6 +7807,10 @@ Exec
 / used primarily to extract data from the table format
 / exec 1 column = list
 / exec > 1 column = dictionary
+
+/ to return a TABLE
+/ need to retrieve > 1 column
+/ and use grouping by 0b (all) or 1b (distinct)
 ```
 
 ```q
@@ -7846,6 +7850,128 @@ AMD 	| 961.13 411.79 609.19 | 100 200 300
 / need to use sublist for EACH column query
 / so 3 sublist price, 3 sublist size
 ```
+
+```q
+/ a lesser known behavior of exec is if we modify our BY to a boolean
+/ and we are returning more than 1 column, we will get a table instead
+```
+
+```q
+/ 4a. Created table egTrade, from trade which is trades by last date and syms that start with A
+
+egTrade: select from trade where date = last date, sym like "A*"
+
+date       sym  time         price size stop cond ex
+----------------------------------------------------
+2020.01.31 AAPL 09:30:00.067 87.75 65   0    T    N 
+2020.01.31 AAPL 09:30:00.068 87.75 42   0    P    N 
+2020.01.31 AAPL 09:30:00.084 87.73 32   0    K    N 
+2020.01.31 AAPL 09:30:00.091 87.77 11   0    9    N 
+```
+
+```q
+/ 4b. use exec to return a dictionary of the sym and dates 
+
+exec sym, date from egTrade 
+
+sym | AAPL       AAPL       AAPL       
+date| 2020.01.31 2020.01.31 2020.01.31
+
+/ if you exec > 1 column, output is a dictionary
+```
+
+```q
+/ 4c. change the output of above query to a TABLE (using by 0b)
+
+exec sym, date by 0b from egTrade
+
+sym  date      
+---------------
+AAPL 2020.01.31
+AAPL 2020.01.31
+AAPL 2020.01.31
+
+/ by 0b will return the output as a table
+```
+
+```q
+/ 4d. retrieve only the distinct outputs of above query
+
+exec sym, date by 1b from egTrade
+
+sym  date      
+---------------
+AAPL 2020.01.31
+AIG  2020.01.31
+AMD  2020.01.31
+
+/ by 1b will return only the distinct items in table
+```
+
+Pivot Tables (using exec)
+
+```q
+t:([] k:1 2 3 2 3; p:`xx`yy`zz`xx`yy; v:10 20 30 40 50)
+
+k p  v 
+-------
+1 xx 10
+2 yy 20
+3 zz 30
+2 xx 40
+3 yy 50
+```
+
+```q
+/ 1. Create a pivot table broken down by k
+/ where we associate the categorization of p with corresponding values v
+
+exec p!v by k from t
+
+key | value
+----------------
+1   | (,`xx)!,10
+2   | `yy`xx!20 40
+3   | `zz`yy!30 50
+
+/ associating the p categories with v values (p!v)
+/ broken down by k = by k
+
+/ that looks okay, but for each row we have a dictionary association
+/ btwn the k value and the corresponding dict p!v
+
+p: asc exec distinct p from t
+`s#`xx`yy`zz
+
+exec P#p!v by k from t
+ | xx yy zz
+-| --------
+1| 10      
+2| 40 20   
+3|    50 30
+
+/ by taking the keys we want from each of our dictionaries we ensure consistency
+
+/ first column doesnt have column name yet
+/ its currently just a list of our k values (since we are using exec)
+/ need to assign column name to k value
+
+pvt:exec P#(p!v) by k:k from t
+
+k| xx yy zz
+-| --------
+1| 10      
+2| 40 20   
+3|    50 30
+
+/ this is the final answer!
+```
+
+
+
+
+
+
 
 Update
 
