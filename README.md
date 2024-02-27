@@ -7920,11 +7920,16 @@ k p  v
 3 zz 30
 2 xx 40
 3 yy 50
+
+/ column p has multiple same values
+/ we want to aggregate p as horizontal axis
 ```
 
 ```q
 / 1. Create a pivot table broken down by k
 / where we associate the categorization of p with corresponding values v
+/ p = dupes
+/ k = sequential records
 
 exec p!v by k from t
 
@@ -7940,10 +7945,12 @@ key | value
 / that looks okay, but for each row we have a dictionary association
 / btwn the k value and the corresponding dict p!v
 
+/ retrieve the distinct values of p
+
 p: asc exec distinct p from t
 `s#`xx`yy`zz
 
-exec P#p!v by k from t
+exec p#p!v by k from t
  | xx yy zz
 -| --------
 1| 10      
@@ -7966,12 +7973,6 @@ k| xx yy zz
 
 / this is the final answer!
 ```
-
-
-
-
-
-
 
 Update
 
@@ -8087,4 +8088,145 @@ size
 ----
 99
 ```
+
+QSQL Problem Set
+
+```q
+/ Create the following sample tables:
+
+trade:([]time:`time$();sym:`symbol$();size:`long$();price:`long$();side:`symbol$();exchange:`symbol$())
+quote:([]time:`time$();sym:`symbol$();bid:`long$();ask:`long$();bidSize:`long$();askSize:`long$();exchange:`symbol$())
+randQuote:{`quote insert(rand .z.t;rand`JPM`GE`BP`MSFT;1+rand 10000;1+rand 10000;1+rand 10000;1+rand 10000;rand`N`L`T)}
+randTrade:{`trade insert(rand .z.t;rand`JPM`GE`BP`MSFT;1+rand 10000;1+rand 10000;rand`B`S;rand`N`L`T)}
+do[10000;randQuote[]]
+do[10000;randTrade[]]
+```
+
+```q
+/ 1. Select all trades for MSFT , with a price less than or equal to 200
+
+select from trade where sym=`MSFT, price <= 200
+
+time	        |  sym	| size	| price	| side	| exchange
+----------------------------------------------------
+00:17:30.109	| MSFT	| 7272	|   41 	|   B	 | T
+02:08:54.643	| MSFT	| 3669	|  158 	|   B	 | T
+04:13:34.529	| MSFT	| 4654	|   27 	|   B	 | T
+00:42:04.454	| MSFT	| 7668	|  102 	|   B	 | L
+
+```
+
+```q
+/ 2. Select the last trade price for each sym in hourly buckets
+
+/ the trick here is the hourly buckets portion
+/ time datatype is in miliseconds hh.mm.ss.mmm
+/ so for 1 hour = 60 minutes = 3,600 seconds = 3,600,000 milliseconds
+
+select last price by sym, 3,600,000 xbar time from trade 
+
+sym	| time	        | price
+--------------------------
+BP	 | 00:00:00.000	| 4583
+BP	 | 01:00:00.000	| 9669
+BP	 | 02:00:00.000	| 6929
+BP	 | 03:00:00.000	|  329
+
+/ stuck with time's original format, but this looks funny
+/ so better we convert time to minutes, then group by 60
+
+select last price by sym, hour: 60 xbar time.minute from trade 
+
+sym	| hour	 | price
+-------------------
+BP 	| 00:00	| 4583
+BP 	| 01:00	| 9669
+BP 	| 02:00	| 6929
+BP 	| 03:00	|  329
+
+/ this looks better!
+```
+
+```q
+/ 3. Select the max and min askSize in the quote table for each exchange in 2 hour buckets, excluding JPM
+
+select maxAskSize:max askSize, minAskSize:min askSize by exchange, hour:120 xbar time.minute from quote where sym<>`JPM
+
+exchange	|  hour	| maxAskSize	| minAskSize
+------------------------------------------
+L	       | 00:00	|    9993   	|   7
+L	       | 02:00	|    9997   	|  15
+L       	| 04:00	|    9997   	|  15
+
+/ notice for 2 hour bucket, cast time to minutes
+/ and use 120 for 2 hours
+/ to EXCLUDE `JPM, use <>
+```
+
+```q
+/ 4. Calculate the daily spread (average bid-ask) for JPM and BP using the quote table
+
+select spread:avg bid-ask by sym from quote where sym in `JPM`BP
+
+sym	| spread
+-------------
+BP	 | -145.46
+JPM	|   92.73
+
+/ even though it doesnt explicitly say, you are grouping by sym
+```
+
+```q
+/ 5. Return all trade records where the size is greater than the average trade size for that sym
+
+select from trade where size > avg size
+
+/ or
+select from trade where size > (avg;size) fby sym
+
+time	        |  sym	| size	| price	| side	| exchange
+----------------------------------------------------
+01:42:09.420	| JPM	 | 8901	|  7589	|   B 	| L
+01:04:36.882	| MSFT	| 7815	|  6915	|   S 	| N
+00:59:51.102	| BP	  | 5937	|  1008	|   S 	| L
+03:15:05.133	| JPM	 | 7549	|  2808	|   B 	| L
+03:02:28.327	| BP	  | 8735	|  1932	|   S 	| N
+01:00:26.334	| BP	  | 7538	|  4940	|   B 	| N
+
+/ since they ask for avg trade size for that sym
+/ an fby exprssion might be more appropriate
+
+```
+
+```q
+/ 6. Return trade records with the maximum price, per symbol and per exchange
+
+select max price by sym, exchange from trade
+
+sym	| exchange	| price
+----------------------
+BP 	|     L	   | 9970
+BP 	|     N	   | 9972
+BP 	|     T	   | 9956
+GE 	|     L	   | 9994
+GE 	|     N  	 | 9981
+GE 	|     T  	 | 9967
+
+/ alternatively, if you want ALL columns returned, use fby syntax:
+
+select from trade where price = (max;price) fby ([] sym; exchange)
+
+time	       |  sym	 | size	| price	|side	| exchange
+---------------------------------------------------
+02:02:07.797	|  JPM	| 6734	| 9997	|   B 	| L
+01:44:55.678	|   GE	| 9957	| 9994	|   S 	| L
+04:03:42.872	|   GE	| 6248	| 9981	|   S 	| N
+04:10:20.687	| MSFT	| 2141	| 9992	|   B 	| L
+04:14:31.888	|   BP	| 7792	| 9956	|   S 	| T
+
+/ note that you can do 2 fby's (sym and exchange)
+/ do so by using a "table filter" ([] sym, exchange)
+```
+
+
 
