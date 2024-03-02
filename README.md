@@ -16,6 +16,7 @@
 13. [Dictionaries](#dict)
 14. [Tables](#tables)
 15. [QSQL](#qsql)
+16. [Joins](#joins2)
 
 <hr>
 
@@ -8365,9 +8366,407 @@ delete from quote where exchange in `L, time>15:00:00
 
 ```
 
+<a name="joins2"></a>
+### 🔴 [16.0] Joins
+[Top](#top)
+
+Joins using ,' (join each)
+
+```q
+/ 2 tables with same number of records can be joined pairwise
+/ or sideways using join-each
+
+/ for example, let's say you want to join 2 single column tables:
+
+([] c1:`a`b`c)
+c1
+---
+a
+b
+c
+
+([] c2:100 200 300)
+c2
+---
+100
+200
+300
+
+/ to join these 2 tables, need to use join each
+
+([] c1:`a`b`c),'([] c2:100 200 300)
+
+c1	c2
+-----
+a	100
+b	200
+c	300
+
+/ if you simply did join , it wont work!
+```
+
+Sidways join on Keyed Tables
+
+```q
+([k:1 2 3] v1:10 20 30)
+
+k v1
+-----
+1  10
+2  20
+3  30
+
+([k:3 4 5] v2:1000 2000 3000)
+
+k v2
+----
+3  1000
+4  2000
+5  3000
+
+/ to join keyed tables, the keyed columns must have identical meta
+/ that is, same table columns and column types
+
+([k:1 2 3] v1:10 20 30),'([k:3 4 5] v2:1000 2000 3000)
+
+k| v1 v2  
+-| -------
+1| 10     
+2| 20     
+3| 30 1000
+4|    2000
+5|    3000
+
+/ if the RHS table has same columns, will OVERRIDE
+/ assume instead of v2 its v1
+
+([k:1 2 3] v1:10 20 30),'([k:3 4 5] v1:1000 2000 3000)
+
+k| v1  
+-| ----
+1|     
+2|     
+3| 1000
+4| 2000
+5| 3000
+
+```
+
+using null each to fill in blanks on joins
+
+```q
+/ join 2 keyed tables, but fill in blanks using values from LHS table
+/ use ^' (null each)
+/ ^ will fill null values in RHS with LHS
+
+([k:1 2 3] v1:10 20 30)^'([k:3 4 5] v1:1000 2000 3000)
+
+k| v1  
+-| ----
+1| 10  
+2| 20  
+3| 1000
+4| 2000
+5| 3000
+```
+
+column joins vs row joins
+
+```q
+/ to add more columns to a table, use ,'
+/ to add more rows to a table, use ,
+
+t1:([] sym:`a`b`c`d; price:1 2 3 4f)
+sym price
+---------
+a	  1.0
+b	  2.0
+c	  3.0
+d	  4.0
+
+t2:([] size:1 2 3 4)
+size
+----
+1
+2
+3
+4
+
+t3:([] sym: `e`f`a; price: 10 20 30f)
+sym price
+---------
+e   10
+f   20
+a   30
+
+/ to add columns by joining tables use ,' join each
+/ table needs to have same number of rows
+
+t1,'t2
+sym price size
+--------------
+a	  1.0   1
+b	  2.0   2
+c	  3.0   3
+d	  4.0   4
+
+/ to add ROWS to a table use ,
+/ table has to have same column names
+
+t1,t3
+sym price
+---------
+a	  1.0
+b	  2.0
+c	  3.0
+d	  4.0
+e   10
+f   20
+a   30
+```
+
+```q
+/ key sym columns in tables t1 and t3
+/ then join the two
+/ if there are any repeat keys, prioritize LHS value over RHS
+
+`sym xkey t1
+`sym xkey t3
+
+t1^'t3
+sym| price
+---| -----
+e  | 10   
+f  | 20   
+a  | 1    
+b  | 2    
+c  | 3    
+d  | 4
+
+/ notice key a is repeated
+/ but value is carried over from LHS table
+```
+
+Left Join 
+
+```
+/ left join is most commonly used to supplement a time-series table
+/ with a new column
+/ reference table HAS to be keyed!
+
+<time series table> lj <reference (keyed) table>
+
+trade:([]time:09:00+10*til 5;sym:`JPM`GE`JPM`IBM`GE;price:30+5?3.;size:5?20) 
+
+time  sym price    size
+-----------------------
+09:00 JPM 32.43275 6   
+09:10 GE  32.40308 0   
+09:20 JPM 31.69531 10  
+09:30 IBM 31.23523 10  
+09:40 GE  31.46312 13
+
+reference:([sym:`JPM`IBM`GS]companyName:`$("JP Morgan";"International Business Machines";"Goldman Sachs");sector:`Banking`IT`Banking)
+
+sym| companyName                     sector 
+---| ---------------------------------------
+JPM| JP Morgan                       Banking
+IBM| International Business Machines IT     
+GS | Goldman Sachs                   Banking
+
+/ use LEFT JOIN on these 2 tables
+/ note the sym column is keyed on the reference table
+/ the common sym column is how we match the two tables
+/ ref data is only returned for syms that exist in ref table
+
+trade lj reference
+
+time  sym price    size companyName                     sector 
+---------------------------------------------------------------
+09:00 JPM 32.43275 6    JP Morgan                       Banking
+09:10 GE  32.40308 0                                           
+09:20 JPM 31.69531 10   JP Morgan                       Banking
+09:30 IBM 31.23523 10   International Business Machines IT     
+09:40 GE  31.46312 13
+```
+
+Inner Join
+
+```q
+/ inner join is similar to left join
+/ matches on KEY, then appends columns that match key
+/ however, if no match on key, omits line
+/ whereas leftjoin will keep the null 
+
+<time series table> ij < reference (keyed) table>
+
+trade
+time  sym price    size
+-----------------------
+09:00 JPM 32.43275 6   
+09:10 GE  32.40308 0   
+09:20 JPM 31.69531 10  
+09:30 IBM 31.23523 10  
+09:40 GE  31.46312 13
+
+reference
+`sym`| companyName                     sector 
+-----| ---------------------------------------
+`JPM`| JP Morgan                       Banking
+`IBM`| International Business Machines IT     
+`GS` | Goldman Sachs                   Banking
+
+/ left join example:
+
+trade lj reference
+time  sym price    size companyName                     sector 
+---------------------------------------------------------------
+09:00 JPM 32.43275 6    JP Morgan                       Banking
+09:10 GE  32.40308 0                                           
+09:20 JPM 31.69531 10   JP Morgan                       Banking
+09:30 IBM 31.23523 10   International Business Machines IT     
+09:40 GE  31.46312 13
+
+/ note the nulls are included in a left join
+
+trade ij reference
+time  sym price    size companyName                     sector 
+---------------------------------------------------------------
+09:00 JPM 32.43275 6    JP Morgan                       Banking
+09:20 JPM 31.69531 10   JP Morgan                       Banking
+09:30 IBM 31.23523 10   International Business Machines IT
+```
+
+```q
+/ 1. Create a new table called reference1
+/ which has companyName "JP Morgan" and "International Business Machines"
+/ and RICS "1234" and "5678"
+/ keyed on companyName
+
+reference1: ([companyName:`$("JP Morgan";"International Business Machines")] RIC: (1234; 5678))
+
+companyName                    | RIC  
+-------------------------------| -----
+JP Morgan                      | 34562
+International Business Machines| 23981
 
 
+/ 2. Create a table that only has trades for JPM
+/ with values associated with companyName, sector, and RIC
+
+trade ij reference ij 1 sublist reference1
+
+time  sym price    size companyName sector  RIC  
+-------------------------------------------------
+09:00 JPM 32.43275 6    JP Morgan   Banking 34562
+09:20 JPM 31.69531 10   JP Morgan   Banking 34562
+
+/ 1 sublist reference1 = only takes first row
+/ so that helps you filter for JPM
+/ first inner join trade + reference table
+/ then use the last reference1 table as a "filter"
+
+/ 3. Create a table that only has trades for which we have:
+/ sector and RICS for IBM
+/ so there's 2 filters
+
+(trade ij reference) lj -1 sublist reference1
+
+time  sym price    size companyName                     sector  RIC  
+---------------------------------------------------------------------
+09:00 JPM 32.43275 6    JP Morgan                       Banking      
+09:20 JPM 31.69531 10   JP Morgan                       Banking      
+09:30 IBM 31.23523 10   International Business Machines IT      23981
 
 
+/ use lj to include nulls for RICS
+```
 
+Bitemporal Joins (asof joins)
+
+```q
+/ bitemporal joins mean they take into account the time in 2 dimensions
+/ in other words, 2 tables
+
+/ Asof Joins mainly used to join columns with reference to time
+
+trade:([]time:09:30 09:31 09:32 09:33 09:34 09:35; sym:`JPM`AAPL`AAPL`JPM`AAPL`JPM;price:30.43 30.45 40.45 30.55 41.00 31.00; size:100 200 200 300 300 600)
+
+time  sym  price size
+---------------------
+09:30 JPM  30.43 100 
+09:31 AAPL 30.45 200 
+09:32 AAPL 40.45 200 
+09:33 JPM  30.55 300 
+09:34 AAPL 41    300 
+09:35 JPM  31    600
+
+quote:([]time:09:29 09:29 09:32 09:33;
+sym:`JPM`AAPL`JPM`AAPL;
+ask:30.23 40.20 30.35 40.35;bid:30.20 40.19 30.33 40.32)
+
+time  sym  ask   bid  
+----------------------
+09:29 JPM  30.23 30.2 
+09:29 AAPL 40.2  40.19
+09:32 JPM  30.35 30.33
+09:33 AAPL 40.35 40.32
+
+/ use asof join to determine the prevailing quote for each trade
+
+aj[`sym`time;trade;quote]
+
+time  sym  price size ask   bid  
+---------------------------------
+09:30 JPM  30.43 100  30.23 30.2 
+09:31 AAPL 30.45 200  40.2  40.19
+09:32 AAPL 40.45 200  40.2  40.19
+09:33 JPM  30.55 300  30.35 30.33
+09:34 AAPL 41    300  40.35 40.32
+09:35 JPM  31    600  30.35 30.33
+
+/ matches on `sym
+/ then uses the common time column for time lookup
+/ trade = source table
+/ quote = reference table
+/ pulls in the last prev value from the quote table
+```
+
+```q
+/ 1. Create a table rack that has the following times for each symbol
+/ in the trade table (JPM and AAPL)
+
+times: 09:00 09:30 10:00
+
+rack: ([] time: 09:00 09:30 10:00) cross ([] sym:`JPM`AAPL)
+
+time  sym 
+----------
+09:00 JPM 
+09:00 AAPL
+09:30 JPM 
+09:30 AAPL
+10:00 JPM 
+10:00 AAPL
+
+/ use cross keyword to create a table of every possible value
+/ between 2 tables
+```
+
+```q
+/ 2. using the rack table, find the bid and ask prices at these times
+/ for each sym
+
+aj[`sym`time;rack;quote]
+
+time  sym  ask   bid  
+----------------------
+09:00 JPM             
+09:00 AAPL            
+09:30 JPM  30.23 30.2 
+09:30 AAPL 40.2  40.19
+10:00 JPM  30.35 30.33
+10:00 AAPL 40.35 40.32
+
+```
 
