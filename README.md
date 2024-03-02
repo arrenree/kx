@@ -8228,5 +8228,146 @@ time	       |  sym	 | size	| price	|side	| exchange
 / do so by using a "table filter" ([] sym, exchange)
 ```
 
+```q
+/ 7. Create a func that takes 2 args, a table name and a sym
+/ and returns all records in the table for the given sym
+
+f:{[t;s] select from t where sym in s}
+
+/ t = table
+/ s = sym to filter on
+
+/ try running it
+
+f[trade;`JPM]
+
+time         sym size price side exchange
+-----------------------------------------
+01:29:47.261 JPM 5439 6943  B    N       
+01:25:00.499 JPM 2883 1300  S    T       
+04:44:56.151 JPM 3976 640   B    N       
+05:52:48.545 JPM 7360 3397  B    T 
+```
+
+```q
+/ 8. Create a function which has 1 arg, sym
+/ the sym can be a single sym or a list of syms
+/ and outputs the total size per sym from trade table
+
+f:{[s] select sum size by sym from trade where sym in s}
+
+/ note you have to do by sym in order for the sym column to populate
+/ otherwise you'll only get the sum size column
+
+/ try running it!
+
+f[`JPM]
+sym| size    
+---| --------
+JPM| 12815089
+
+f[`JPM`GE]
+sym| size    
+---| --------
+GE | 12154934
+JPM| 12815089
+
+```
+
+```q
+/ 9. Create a function which has 1 argument, sym
+/ and returns the vwap price per sym from trade table
+
+f:{[s] select vwap:price wavg size by sym from trade where sym in s}
+
+f[`JPM]
+sym| vwap    
+---| --------
+JPM| 5082.625
+
+f[`JPM`MSFT]
+sym | vwap    
+----| --------
+JPM | 5082.625
+MSFT| 5026.725
+```
+
+```q
+/ 10. Create a function which has 1 argument, sym
+/ and returns the sorted list (using exec) of times when trades
+/ where executed per sym
+
+f:{[s] asc exec time by sym from trade where sym in s}
+
+/ note - exec returns a list
+/ if you did select, you'd return a column of times
+/ also note asc goes in FRONT of exec
+
+/ try running it
+
+f[`JPM]
+`s#00:00:03.956 00:00:15.456 00:00:17.840 00:00:20.586 00:00:21.632 00:00:27...
+```
+
+```q
+/ 11. Generate a table from your quote table
+/ that has the best bid (bigger better) and ask (smaller better)
+/ on a daily basis broken down by sym and 1 min intervals
+/ the final table should have a time column of that time type
+
+t: select ask: min ask, bid: max bid by sym, time:`time$time.minute from quote where askSize>0, bidSize>0
+
+sym time        | ask  bid 
+----------------| ---------
+BP  00:00:00.000| 98   9876
+BP  00:01:00.000| 1024 9854
+BP  00:02:00.000| 2805 7042
+
+/ so instead of an xbar, you are simply "grouping" using [by]
+/ current time is is time datatype hh.mm.ss.mmm
+/ first, cast time to minutes (to round to nearest minute)
+/ then, cast it back into the `time format
+
+select time from quote
+time        
+------------
+02:18:25.998
+
+select time.minute from quote
+minute
+------
+02:18
+
+select `time$time.minute from quote
+
+minute      
+------------
+02:18:00.000
+
+```
+
+```q
+/ 12. Update the price column in the trade table
+/ so that it's 0.78x the prev price
+/ for exchange T
+
+update `int$price*0.78 from trade where exchange in `T
+
+/ not sure why have to cast back into int
+/ maybe cuz of datatype formatting?
+```
+
+```q
+/ 13. Remove all times in quote table after 15:00:00
+/ for the L exchange
+
+delete from quote where exchange in `L, time>15:00:00
+
+```
+
+
+
+
+
 
 
