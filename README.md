@@ -8767,6 +8767,264 @@ time  sym  ask   bid
 09:30 AAPL 40.2  40.19
 10:00 JPM  30.35 30.33
 10:00 AAPL 40.35 40.32
+```
+
+Plus Join 
+
+```q
+/ plus join used to sum matching columns of 2 tables
+/ left table can be keyed or unkeyed
+/ right table MUST be keyed
+
+pj[unkeyed or keyed; keyed]
+
+/ plus join example:
+
+stocks:([]sym:`IBM`AAPL`GOOG;amount:400 700 1200)
+
+sym  amount
+-----------
+IBM  400   
+AAPL 700   
+GOOG 1200  
+
+newpurchases:([sym:`IBM`GOOG]amount:60 30)
+
+`sym` | amount
+------| ------
+`IBM` | 60    
+`GOOG`| 30    
+
+pj[stocks;newpurchases]
+
+sym  amount
+-----------
+IBM  460   
+AAPL 700   
+GOOG 1230  
+
+/ matches on key (IBM + GOOG)
+/ and sums values
+/ no match on AAPL so stays 700
+```
+
+Union Join
+
+```q
+/ UJ only works if BOTH tables are unkeyed
+/ or if BOTH tables are keyed
+/ doesn't work if 1 keyed and 1 unkeyed table
+
+syntax:
+<LHS Table> uj <RHS Table>
+
+/ Union Join Example
+
+trade:([]time:09:00+10*til 5;sym:`JPM`GE`JPM`IBM`GE;price:30+5?3.;size:5?20) 
+
+time  sym price    size
+-----------------------
+09:00 JPM 32.3551  12  
+09:10 GE  31.60413 8   
+09:20 JPM 32.13351 10  
+09:30 IBM 31.23479 1   
+09:40 GE  31.47955 9
+
+/ note trade is an unkeyed table
+
+reference:([sym:`JPM`IBM]companyName:`$("JP Morgan";"International Business Machines");sector:`Banking`IT) 
+
+`sym`| companyName                     sector 
+-----| ---------------------------------------
+`JPM`| JP Morgan                       Banking
+`IBM`| International Business Machines IT
+
+/ note reference is a keyed table
+
+/ 1. unkey ref table, then union join the two tables
+
+trade uj 0! reference
+
+time  sym price    size companyName                     sector 
+---------------------------------------------------------------
+09:00 JPM 31.57498 11                                          
+09:10 GE  32.47501 15                                          
+09:20 JPM 31.82499 13                                          
+09:30 IBM 31.58014 13                                          
+09:40 GE  30.0659  8                                           
+      JPM               JP Morgan                       Banking
+      IBM               International Business Machines IT    
+
+/ 2. add in size 2 for JPM and 3 for IBM for type float
+
+trade uj ([] size: 2f 3f), '0! reference
+
+time  sym price    size companyName                     sector 
+---------------------------------------------------------------
+09:00 JPM 31.57498 11                                          
+09:10 GE  32.47501 15                                          
+09:20 JPM 31.82499 13                                          
+09:30 IBM 31.58014 13                                          
+09:40 GE  30.0659  8                                           
+      JPM          2f   JP Morgan                       Banking
+      IBM          3f   International Business Machines IT
+
+/ 3. What happens if you try to uj 1 keyed and 1 unkeyed table?
+
+trade uj reference
+/ error
+
+/ both tables have to be unkeyed or keyed
+/ cannot UJ 1 keyed and 1 unkeyed table
+
+/ 4. key the sym column in the trade table then try UJ again
+
+(`sym xkey trade) uj reference
+
+sym| time  price    size companyName                     sector 
+---| -----------------------------------------------------------
+JPM| 09:00 31.57498 11   JP Morgan                       Banking
+GE | 09:10 32.47501 15                                          
+IBM| 09:30 31.58014 13   International Business Machines IT
+
+/ works cuz both tables are now keyed
+```
+
+```q
+/ 5. Use UJ to determine the timing of data for 2 different tables
+
+trade:([]time:09:00+10*til 5;sym:`JPM`GE`JPM`IBM`GE;price:30+5?3.;size:5?20) 
+
+time  sym price    size
+-----------------------
+09:00 JPM 31.57498 11  
+09:10 GE  32.47501 15  
+09:20 JPM 31.82499 13  
+09:30 IBM 31.58014 13  
+09:40 GE  30.0659  8
+
+order:([]time:asc `minute$08:00+5?0D02:00:00;
+             sym:5?`JPM`GE`IBM;
+             orderID:(5 cut 25?.Q.n),'string 5?`5;
+             price:30+5?20.)
+
+time  sym orderID      price   
+-------------------------------
+08:11 JPM "67929gacpo" 30.80321
+08:35 IBM "39380ancim" 33.3043 
+08:36 JPM "38052jhdao" 41.13746
+09:11 GE  "88407olpem" 30.03977
+09:17 GE  "96924efaog" 42.94857
+
+`time xasc uj[trade;order]
+
+time  sym price    size orderID     
+------------------------------------
+08:11 JPM 30.80321      "67929gacpo"
+08:35 IBM 33.3043       "39380ancim"
+08:36 JPM 41.13746      "38052jhdao"
+09:00 JPM 31.57498 11   ""          
+09:10 GE  32.47501 15   ""          
+09:11 GE  30.03977      "88407olpem"
+09:17 GE  42.94857      "96924efaog"
+09:20 JPM 31.82499 13   ""          
+09:30 IBM 31.58014 13   ""          
+09:40 GE  30.0659  8    ""
+
+/ now it's really easy to tell the sequence in which trades happened
+```
+
+Equi Join
+
+```q
+syntax:
+ej[matchingColumns; table1; table2]
+
+trade:([]sym:`XOM`GM`MET`GOOG`GM`XOM;price:200 150 60 151 152 199)
+
+sym  price
+----------
+XOM  200  
+GM   150  
+MET  60   
+GOOG 151  
+GM   152  
+XOM  199  
+
+sector:([]sym:`XOM`GM`IBM;sector:`energy`auto`tech)
+
+sym sector
+----------
+XOM energy
+GM  auto  
+IBM tech 
+
+ej[`sym;trade;sector]
+
+sym price sector
+----------------
+XOM 200   energy
+GM  150   auto  
+GM  152   auto  
+XOM 199   energy
+
+/ matches on sym, then joins the resulting columsn from t1 and t2
+/ no match on MET or GOOG, so skips
+```
+
+Window Joins
+
+```q
+t:([]sym:3#`JPM;time:09:30:01 09:30:04 09:30:08;price:120 123 121)
+
+sym time     price
+------------------
+JPM 09:30:01 120  
+JPM 09:30:04 123  
+JPM 09:30:08 121 
+
+q:([]sym:10#`JPM;time:asc 09:30:00+10?8;ask:10?90+til 20;bid:10?90+til 20)
+
+sym time     ask bid
+--------------------
+JPM 09:30:01 104 98 
+JPM 09:30:04 104 108
+JPM 09:30:04 102 105
+JPM 09:30:05 104 98 
+JPM 09:30:05 99  103
+JPM 09:30:06 92  96 
+JPM 09:30:06 109 99 
+JPM 09:30:06 102 106
+JPM 09:30:07 99  90 
+JPM 09:30:07 100 90 
+
+/ Create a 3 second set of windows (2 seconds before and 1 second after)
+/ each trade time for each trade
+
+t[`time]
+09:30:01 09:30:04 09:30:08
+
+/ our trade times
+
+windows: -2 1+\: t[`time]
+09:29:59 09:30:02 09:30:06
+09:30:02 09:30:05 09:30:09
+
+/ uses adverb each left to add every RIGHT to each left (-2 and 1)
+
+/ now run a windows join:
+
+wj[windows;`sym`time;t;(q;(max;`ask);(min;`bid))]
+
+sym time     price ask bid
+--------------------------
+JPM 09:30:01 120   107 90 
+JPM 09:30:04 123   99  94 
+JPM 09:30:08 121   109 90
 
 ```
+
+
+
+
 
