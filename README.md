@@ -9022,9 +9022,198 @@ JPM 09:30:01 120   107 90
 JPM 09:30:04 123   99  94 
 JPM 09:30:08 121   109 90
 
+/ so we join t and q together
+/ calculating the highest ask and lowest bid within the window
+
+
+/ so t has 3 times: 01, 04, and 08
+/ based on these 3 times, create 2 "windows" for each time
+/ -2 mins + 1 min after
+/ you want to know within each "window"
+/ what the best ask (max ask) and bid (min bid) is
+/ q has bids and offers for a list of times
 ```
 
+Tables Joins Problem Set
+
+```q
+t: ([] sym:`a`b`c`d; price: 1 2 3 4f)
+
+sym price
+---------
+a   1    
+b   2    
+c   3    
+d   4
+```
+
+```q
+/ 1. Append another row to the table using simple join operator
+/ row to append:
+
+sym price
+----------
+e   5
+
+/ table syntax:
+
+t,([] sym: enlist `e; price: enlist 5f)
+
+/ dictionary syntax:
+
+t, `sym`price !(`e; 5f)
+
+sym price
+---------
+a   1    
+b   2    
+c   3    
+d   4
+e   5
+```
+
+```q
+/ 2. Join a dict to t so that it returns a table containing
+/ a nested row with a sym value of `e`f and a price of 5 6f
+
+/ reminder
+
+`sym`price ! (`e`f; 5 6f)
+
+key   | value
+-------------
+sym	  |`e`f
+price	| 5 6f
+
+/ so to join this to a table, simply use a dictionary join
+
+t, (`sym`price ! (`e`f; 5 6f))
+
+sym	 | price
+------------
+a	   | 1.0
+b	   | 2.0
+c	   | 3.0
+d	   | 4.0
+`e`f	| 5 6
+```
+
+```q
+/ 3. Join a column qty to the table t with values 100 150 200 250
+
+/ table syntax:
+
+t,'([] qty: 100 150 200 250)
+
+sym price qty
+-------------
+a   1     100
+b   2     150
+c   3     200
+d   4     250
+
+/ dictionary syntax:
+
+t,'flip enlist[`qty]!enlist(100 200 300 400)
+```
+
+```q
+/ 4. Create trade table with 10 rows and columns: sym, price, and size
+/ syms data = generated from `A`B`C`D
+/ generate your own data for price and size
 
 
+trade:([] sym: 10?`A`B`C`D; price: 10?10.0; size: 10? 100)
 
+sym	| price	| size
+-------------------
+B	  |  3.41	| 93
+C	  |  8.61	| 38
+B	  |  5.54	| 93
+```
 
+```q
+/ 5. Create table industry with sym and ind columns
+/ with syms = `A`B`C`E
+/ and ind = `IT`Finance`Media`Transport
+
+industry:([sym:`A`B`C`E]; ind: `IT`Finance`Media`Transport)
+
+`sym`| ind      
+-----|---------
+`A`  | IT       
+`B`  | Finance  
+`C`  | Media    
+`E`  | Transport
+```
+```q
+/ 6. Join industry and trade tables to produce table with only
+/ the syms that are in both tables
+/ and all corresponding data
+
+trade ij industry
+
+sym price  size ind    
+------------------------
+B   50.42  792  Finance
+C   53.36  558  Media  
+C   48.20  784  Media  
+B   77.28   13  Finance
+B    4.70   44  Finance
+C   87.06  675  Media  
+C   69.64  677  Media  
+A   93.48  514  IT     
+A   54.84  346  IT
+
+/ inner join only matches on the keyed columns
+/ and returns the associated values
+
+```
+
+```q
+/ 7. Join industry and trade table such that an ind column is added
+/ all original entries in trade should be present
+/ if no corresponding ind for a sym, there should be a null
+
+trade2: trade lj industry
+
+sym price size ind
+-----------------------
+D   52.39 816
+B   97.10 155  Finance
+A   50.14 206  IT
+C   7.335 946  Media
+C   92.20 408  Media
+B   91.51 716  Finance
+A   11.20 170  IT
+D   59.03 593
+D   91.98 116
+C   10.42 652  Media
+
+/ left join will keep the nulls
+```
+
+```q
+/ 8. Add the following to the trade2 table:
+/ keyed syms `A`C
+/ ind: `Transport`Healthcare
+/ eX: `N`P
+
+newInd: ([syms: `A`C] ind:`Transport`Healthcare; Ex:`N`P)
+
+trade2 lj newInd: ([syms: `A`C] ind:`Transport`Healthcare; Ex:`N`P)
+
+sym price size ind        Ex
+-------------------------------
+B   50.42 792  Finance      
+C   53.36 558  Healthcare P 
+D   93.74 112               
+C   48.20 784  Healthcare P 
+B   77.28 13   Finance      
+B   4.700 44   Finance      
+C   87.06 675  Healthcare P 
+C   69.64 677  Healthcare P 
+A   93.48 514  Transport  N 
+A   54.84 346  Transport  N
+
+```
