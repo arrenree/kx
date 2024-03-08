@@ -4,7 +4,6 @@
 1. [qSQL](#qsql)
 2. [Joins](#joins)
 3. [Data Structures](#data)
-4. [Functions](#functions)
 5. [Loading Data](#load)
 6. [Atoms & Primitives](#atoms)
 7. [Lists](#Lists)
@@ -1367,242 +1366,6 @@ type each (dict;tab;keytab)
 / 99 = dict
 / 98 = table
 / 99h = keyed table
-```
-
-<a name="functions"></a>
-### 🔴 [4.0] Functions
-[Top](#top)
-
-
-🔵 [4.5] Iterators
-
-```q
-/ an iterator is an operator that modifies how a function is applied
-```
-
-```q
-/ 1. say we want to add 1 2 + 3 4 5
-
-1 2 + 3 4 5
-error
-
-/ length error
-/ the add operator iterates implictly, but expects its arguments to be atoms or have matching lengths
-/ in this instance, we can use each right or each left
-```
-
-🔵 [4.6] Each Left
-
-```q
-/ syntax:
-x f\: y
-
-/ equivalent:
-f[ ; y] each x
-
-/ will function EACH LEFT ARG
-/ to entire RIGHT
-/ the top of the \ is pointing LEFT
-
-1 2 +\: 3 4 5
-
-4 5 6
-5 6 7
-
-/ so adds 1 to 3 4 5
-/ then adds 2 to 3 4 5
-```
-
-🔵 [4.7] Each Right
-
-```q
-/ syntax:
-x f/: y
-
-/ equilvalent:
-f[x; ] each y
-
-/ will function EACH RIGHT arg
-/ to entire LEFT
-/ top of the / points RIGHT
-
-1 2 +/: 3 4 5
-4 5
-5 6
-6 7
-
-/ adds 3 to 1 2
-/ adds 4 to 1 2
-/ adds 5 to 1 2
-```
-
-🔵 [4.8] Each
-
-```q
-/ 1. Create list l as a list of chars
-
-l: ("the";"quick";"brown";"fox")
-```
-```q
-/ 2. Count the number of elements in l
-
-count l
-4
-
-/ there are 4 elements in the list
-```
-
-```q
-/ 3. How many elements are within each list?
-
-count each l
-3 5 5 3
-
-/ counts the number of chars within each list
-```
-
-🔵 [4.9] Each Both
-
-```q
-/ each both adds every element of x to every element of y
-/ x,'y
-
-/ 4. Create two lists x: 1 2 3 4, y: 10 20 30 40 and join them item by item, returning a pair of lists (type 0h
-
-x: 1 2 3 4
-y: 10 20 30 4 
-
-x ,'y
-(1 10;2 20;3 30;4 4)
-
-/ each both joins every element of x to every element of y
-/ returning a pair of lists
-```
-
-🔵 [4.10] Accumulating iterators
-
-```q
-/ map iterators apply a function across arguments
-/ accumulator iterators are applied repeatedly to results of successive evaluations
-
-/ scan (\) - shows all results. scan battlefield, so perched high in a defensive position \.
-
-/ over (/) - only shows final result. Jump over the wall. so / easier to jump over. think "it's over" so only shows last result
-```
-
-```q
-n: 1 3 6 9
-
-+/[n] / sum over
-19 
-
-+\[n] / sum scan
-1 4 10 19
-```
-
-```q
-/ different syntax formats:
-
-function/[data]
-(function/) data
-
-
-/ Add these numbers, fold '+' over the vector
-/ fold is sometimes called reduce or inject
-(+/) 1 2 3 4
-10
-
-sum 1 2 3 4 / Another way to sum the values, using a built-in function
-10
-```
-
-```q
-/ cumulative sums (running sums)
-
-(+\)1 2 3 4 / Cumulative sums, using scan
-1 3 6 10
-
-sums 1 2 3 4 / Same, using the built-in function
-1 3 6 10
-```
-```q
-/ 1. create function add, which adds x+x, then iterate this list across 3 6 8
-
-add:{x+x}
-add each 3 6 8
-6 12 16
-
-/ you can use each to iterate function across multiple arguments
-```
-
-```q
-/ 2. Create a new function, add2:{x+y}, and iterate this list of integers across it, (3 6 8;4 7 9) so that the first value of each list is added together
-
-add2:{x+y}
-add2'[3 6 8; 4 7 9]
-7 13 17
-
-/ alternative syntax
-'[add2][3 6 8; 4 7 9]
-
-/ so you use 'each
-/ to feed EACH element of 2 lists into add2 function
-```
-```q
-/ 3. Multiple each value in this list, 3 5 4 2, against the value 11. Use the over iterator
-
-11 */ 3 5 4 2
-1320
-
-/ 3b. create a function that performs the same
-
-{x*y}/[11;3 5 4 2]
-
-/ so your "function" is x*y
-/ and you're feeding in x = 11 and y = 3 5 4 2
-/ the over iterator performs the function through entire arg list
-```
-
-🔵 [4.11] Fibonacci Case Study
-
-```q
-/ 4. Create a func that generates the first 10 elements of the fibo sequence
-/ each num is sum of preceding 2 numbers
-/ starts with 0 1
-
-/ assume x is list of numbers
-
-sum -2#x
-/ take last 2 elements of x, add them together
-
-x, sum -2#x
-/ joins the result of sum of last 2 elements with list x
-
-{x,sum -2#x} 0 1
-/ Create function, test by using list of 0 and 1 as arg
-/ so x = 0 1 (together)
-/ RIGHT TO LEFT
-/ takes list of 0 1, adds last 2 elements = 1
-/ then takes x (0 1) and joins 1
-/ hence 0 1 1
-
-fib:{x, sum -2#x}
-/ names function (remove testing)
- 
-fib[0 1 1 2 3 5]
-0 1 1 2 3 5 8
-
-/ test your function by feeding fibo sequence
-/ so fib = calculates the NEXT number in sequence
-
-/ use the "do" form of over
-/ to repeat the function 10x
- 
-fib/[10;0 1]
-0 1 1 2 3 5 8 13 21 34 55 89
-
-/ so this says, repeat 10x
-/ and start x as 0 1
 ```
 
 <a name="atoms"></a>
@@ -4521,45 +4284,87 @@ select avg tipPerDist, avg distance, avg tip by vendor from createTable[]
 [Top](#top)
 
 ```q
-/ iterators replaces the use of loops commonly seen in coding
-/ modify's a function to iterate across every item in a list
+/ an iterator is an operator that modifies how a function is applied
+/ replaces the use of loops commonly seen in coding
 ```
 
 Each
 
 ```q
-/ used to apply a function to each item in a list
+/ used to apply a function to EACH item in a list
 / useful in a nested list
+```
+
+```q
+/ Example 1 - Each
 
 a: (1 2 3; 10 20i; 30 40 50f; 60)
 count a
-4 / four items in list
+4
+
+/ four items nested list a
 
 count each a
-3 2 3 1 / how many elements are in each list
+3 2 3 1
+
+/ by using EACH, it now extracts how many elements are in EACH list
+
 ```
 
 ```q
-/ each will not work with multivalent functions
-/ only works for functions with 1 argument
+/ Example 2 - Each
 
-/ the IN keyword takes 2 inputs:
+/ 1. Create list k as a list of chars
+
+k: ("the";"quick";"brown";"fox")
+
+```
+
+```q
+/ 2. Count the number of elements in k
+
+count k
+4
+
+/ there are 4 elements in the nested list
+```
+
+```q
+/ 3. How many elements are within each list?
+
+count each k
+3 5 5 3
+
+/ counts the number of chars within each list
+```
+
+In Keyword
+
+```q
+/ the IN keyword takes 2 inputs: LHS and RHS
+/ and outputs a boolean (true or false)
 
 3 in 1 2
-0b/ false
+0b
+
+/ false, 3 is not in list
 ```
 
 ```q
+/ EACH will NOT work with multivalent (>1 arg) functions
+/ only works for functions with 1 argument
+
 / 1. Check if 3 is in (1; 1 2; 3 4)
 
 3 in each (1; 1 2; 3 4)
 error
-/ can't use each in a multivalent function (in requires 2 arguments)
+/ can't use EACH in a multivalent function (in requires 2 arguments)
 
 / solution: project function "in" to a single input function
 / by fixing the first parameter
 
 isthreein: 3 in
+
 / create projection of in
 / fixed first parameter as 3
 
@@ -4616,16 +4421,31 @@ within[5] each (3 6; 4 8; 10 15)
 / this also works
 ```
 
-each both
+Each Both
 
 ```q
-/ each both ' uses items from 2 lists in pairwise fashion
-/ can also be a list and an atom
+/ each both adds every element of x to every element of y
+/ x,'y
 
-/ take each both (#') example
+x: 1 2 3 4
+y: 10 20 30 4 
 
-1 2 3 4 #' ("abcd"; "abcd";"abcd";"abcd")
-("a";"ab";"abc";"abcd")
+x,'y
+(1 10; 2 20; 3 30; 4 4)
+
+/ each both joins every element of x to every element of y
+/ returning a pair of lists
+```
+
+Take Each (#')
+
+```q
+/ TAKE Each (#') example
+
+/ take the first, second, third, and fourth item from list
+
+1 2 3 4 #' ("abcd"; "abcd"; "abcd"; "abcd")
+("a"; "ab"; "abc"; "abcd")
 
 / take 1 items from first element
 / take 2 items from second elements
@@ -4633,11 +4453,10 @@ each both
 ```
 
 ```q
-/ atom #' list
 / take first 3 items from each element in list
 
-3#'("abcd"; "abcd";"abcd";"abcd")
-("abc";"abc";"abc";"abc")
+3#'("abcd"; "abcd"; "abcd"; "abcd")
+("abc"; "abc"; "abc"; "abc")
 
 / behaves similar to 2 + 1 2 3
 / the atom (2) is applied to every element of list
@@ -4650,6 +4469,8 @@ each both
 / same thing
 / but instead of ' you use EACH keyword
 ```
+
+Each Projections 
 
 ```q
 / returning to our in example before, can avoid projection by using '
@@ -4674,26 +4495,49 @@ isthreein each (1; 1 2; 3 4)
 / the atom (3) gets applied to every element of right side list
 ```
 
-each left \:
+Each Left \:
 
 ```q
+/ Each Left takes ENTIRE right to EACH item in left
+/ top of the arrow points LEFT \:
 
+2 3 +\: 3 4 5
+5 6 8
+6 7 8
+
+/ sums entire 3 4 5 to each item of left
+/ if 2 items on left, then output will be 2 rows
 ```
 
-each right /:
+```q
+/ Example 2 - Each Left
+
+1 2 +\: 3 4 5
+
+4 5 6
+5 6 7
+
+/ Each Left = takes entire RIGHT and applies to EACH element of LEFT
+/ sums entire 3 4 5 to 1
+/ sums entire 3 4 5 to 2
+```
+
+Each Right /:
 
 ```q
-/ top of arrow points to RIGHT
-/ takes entire left and performs to EACH element in RIGHT
+/ takes entire LEFT and applies to EACH element in RIGHT
+/ top of arrow points to RIGHT /:
 
-2 3 +/: 3 4 5
-
+1 2 +/: 3 4 5
+4 5
 5 6
 6 7
-7 8
 
-/ adds 2 3 to each element of 3 4 5
+/ takes entire left (1 2) and adds to each element to RHS ( 3 4 5)
+/ since 3 items in RHS, output will be 3 rows
 ```
+
+Join Each Right (,/:)
 
 ```q
 / join each right (,/:)
@@ -4715,18 +4559,6 @@ each right /:
 10 15
 
 / multiplies 2 3 to each item to the right
-```
-
-each left \:
-
-```q
-/ takes entire right to EACH item in left
-
-2 3 +\: 3 4 5
-5 6 8
-6 7 8
-
-/ takes 3 4 5 + each item of left
 ```
 
 in 
@@ -4898,17 +4730,33 @@ myMax': [20 30 2 3 20 40 70]
 / vs the previous element at the previous index position
 ```
 
+Accumulating iterators
+
+```q
+/ accumulator iterators are applied repeatedly to results of successive evaluations
+
+scan (\)
+/ shows ALL results
+/ Perched high in a defensive position towards back to SCAN battlefield
+
+over (/)
+/ only shows FINAL result
+/ Jump "over" the wall /
+/ "it's over" = only shows LAST result
+```
+
 Scan \
 
 ```q
-/ scan returns the intermediate values associated with each execution
-/ so returns every single iteration
+/ shows ALL results
+/ returns the intermediate values associated with each execution
+/ returns every single iteration
 / think of it as a man standing behind a fort, "scanning" the battlefield
 ```
 
-```q
-/ plus scan example
+Plus Scan Example
 
+```q 
 (+\) 1 2 3 4 5
 1 3 6 10 15
 
@@ -4929,6 +4777,31 @@ sums 1 2 3 4 5
 1 3 6 10 15
 ```
 
+Sum Scan Example
+
+```q
+/ adds every successive element
+/ and outputs every iteration
+
++\[1 3 6 9]
+1 4 10 19
+
+/ +1 = 1
+/ 1 + 3 = 4
+/ 4 + 6 = 10
+/ 10 + 9 = 19
+
+/ alterative syntax
+
+(+\) 1 2 3 4
+1 3 6 10
+
+/ same as using the SUMS function
+
+sums 1 2 3 4
+1 3 6 10
+```
+
 ```q
 / append one element of a list to the next to a list in each iteration
 
@@ -4941,28 +4814,40 @@ sums 1 2 3 4 5
 1 2 3 4 5  / 1+4 = 5, appends 5
 ```
 
-Compound Interest Example
+Scan - Compound Interest Example
 
 ```
-/ 1. given 2 inputs: savings & interest, find a function that tells us annual return
+/ 1. Given 2 inputs: savings & interest,
+/ Create a function that tells us the annual return
 
-f: { [savings;interest] rate: 1 + 0.01*interest; savings*rate}
-f[10000;1.2] / 10,000 in savings, 1.2% int rate
+f: { [savings; interest] rate: 1 + 0.01*interest; savings*rate}
+
+f[10,000; 1.2] / 10,000 in savings, 1.2% int rate
+
 10120f / savings after 1 year
+```
 
-/ now lets assume the interest rates over the past 5 years:
+```q
+/ 2. Now lets assume the interest rates over the past 5 years:
 
 interestRates: 1 1 1.25 2 1.6 1.5
 
-/ 2. Calculate the savings based on these new interest rates
+/ 2. Calculate the savings each year based on these new interest rates
+/ by using SCAN on your existing function
 
 (f\) 10000,interestRates
 10000 10100 10201 10328.51 10535.08 10703.64 10864.2
 
 / SCAN allows you to iterate your function across a list
-/ so taking your formula, and using SCAN (f\)
-/ using 10,000 as your first argument
-/ and a list (of int rates) as your second arg
+/ so takes your formula (f), and applies SCAN (f\)
+/ 10,000 as your first argument
+/ and the list of interest rates is your second arg
+
+/ using function + scan syntax:
+
+function\[data]
+(function\) data
+
 ```
 
 Over
@@ -4970,15 +4855,64 @@ Over
 ```q
 / over / iterates similar to scan, but only returns the final result
 / think of when it's "over" you only care about the last result
+```
+
+```q
+/ Sum Over example
 
 (+/) 1 2 3 4 5
 15
+
+/ only outputs LAST result
+/ this is sometimes referred to as "fold" over the vector
+/ also sometimes called reduce or inject
 
 / the same as sum
 
 sum 1 2 3 4 5
 15
 ```
+
+Iterator Problem Set
+
+```q
+/ 1. create function add, which adds x+x, then iterate this list across 3 6 8
+
+add:{x+x}
+add each 3 6 8
+6 12 16
+
+/ you can use each to iterate function across multiple arguments
+```
+
+```q
+/ 2. Create a new function, add2:{x+y}, and iterate this list of integers across it, (3 6 8;4 7 9) so that the first value of each list is added together
+
+add2:{x+y}
+add2'[3 6 8; 4 7 9]
+7 13 17
+
+/ alternative syntax
+'[add2][3 6 8; 4 7 9]
+
+/ so you use 'each
+/ to feed EACH element of 2 lists into add2 function
+```
+```q
+/ 3. Multiple each value in this list, 3 5 4 2, against the value 11. Use the over iterator
+
+11 */ 3 5 4 2
+1320
+
+/ 3b. create a function that performs the same
+
+{x*y}/[11;3 5 4 2]
+
+/ so your "function" is x*y
+/ and you're feeding in x = 11 and y = 3 5 4 2
+/ the over iterator performs the function through entire arg list
+```
+
 
 ```q
 / 1. Use drop to remove first element from x and last 2 elements of y
@@ -5017,6 +4951,48 @@ prefixstring:{x,/:y}
 
 prefixstring[("1";"2";"3");("a";"b";"c")]
 ("123a";"123b";"123c")
+```
+
+🔵 [4.11] Fibonacci Case Study
+
+```q
+/ 4. Create a func that generates the first 10 elements of the fibo sequence
+/ each num is sum of preceding 2 numbers
+/ starts with 0 1
+
+/ assume x is list of numbers
+
+sum -2#x
+/ take last 2 elements of x, add them together
+
+x, sum -2#x
+/ joins the result of sum of last 2 elements with list x
+
+{x,sum -2#x} 0 1
+/ Create function, test by using list of 0 and 1 as arg
+/ so x = 0 1 (together)
+/ RIGHT TO LEFT
+/ takes list of 0 1, adds last 2 elements = 1
+/ then takes x (0 1) and joins 1
+/ hence 0 1 1
+
+fib:{x, sum -2#x}
+/ names function (remove testing)
+ 
+fib[0 1 1 2 3 5]
+0 1 1 2 3 5 8
+
+/ test your function by feeding fibo sequence
+/ so fib = calculates the NEXT number in sequence
+
+/ use the "do" form of over
+/ to repeat the function 10x
+ 
+fib/[10;0 1]
+0 1 1 2 3 5 8 13 21 34 55 89
+
+/ so this says, repeat 10x
+/ and start x as 0 1
 ```
 
 <a name="funccontrol"></a>
