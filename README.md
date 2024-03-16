@@ -126,7 +126,7 @@ date       |  Month  |vendor|      pickup_time       |       dropoff_time      |
 <hr>
 
 <a name="data"></a>
-### 🔴 [2.0] Datatypes / Data Structures
+### 🔴 [2.0] Datatypes / Casting
 [Top](#top)
 
 ```q
@@ -136,14 +136,9 @@ smalltrips:("DMSPPNJFFFFFSFFFFF"; enlist ",") 0: `:smalltrips.csv
 
 ```
 
-Lists
+[List] 1. Retrieve fares from trips on 2009.01.01 for vendor VTS; assign to vtsfares
 
 ```q
-/ you can retrieve a column from a table as a list
-
-/ 1. Retrieve fares from trips on 2009.01.01 for vendor VTS
-/ assign the result to variable vtsfares
-
 vtsfare: select fare from trips where date = 2009.01.01, vendor = `VTS
 
 fare
@@ -162,12 +157,9 @@ fare
 / retrieved single column (fare) from table trips
 ```
 
+[List] 2. Retrieve fares as a list from table vtsfare using indexing; assign the results to variable fares
+
 ```q
-/ since tables in kdb are column oriented, columns can be extracted by indexing
-
-/ 2. Retrieve fares as a list from table vtsfare using indexing
-/ assign the results to variable fares
-
 fares: vtsfares`fare
 5.7 4.9 4.9 4.5 4.9 15.3 3.7 8.5
 
@@ -175,9 +167,9 @@ fares: vtsfares`fare
 / syntax is tablename`col_name
 ```
 
-```q
-/ 3. Check the datatype for fares
+[List] 3. Check the datatype for fares
 
+```q
 type fares
 9h
 
@@ -186,21 +178,175 @@ type fares
 / positive number means list (neg means atom)
 ```
 
+[List] 4. Create a general list with sym VTS and float 23.45
+
 ```q
-/ 4. Create a general list with sym VTS and float 23.45
 / general list = different datatypes (aka mixed list)
 
 general: (`VTS;23.45)
 ```
 
-```q
-/ 5. Check the datatype for general
+[List] 5. Check datatype for general
 
+```q
 type general
 0h
 
 / general lists always have type zero
 ```
+
+
+[Datatype] What is a list/vector?
+
+```q
+/ a string is an ordered sequence of items
+
+1 2 3
+/ this is a list of longs
+```
+
+[Datatype] What is a string?
+
+```q
+a string is a list of chars
+
+"thisisastring"
+
+/ this is a string aka list of chars
+/ encased with double parathesis
+```
+
+🔵 Temporal Datatypes
+
+[Temporal] TIME datatype
+
+```q
+type 09:30:00.000 
+-19h / time datatype
+```
+
+[Temporal] SECOND datatype
+
+```q
+type 09:30:00 
+-18h / second datatype
+```
+
+[Temporal] MINUTE datatype
+
+```q
+type 09:30
+-17h / minute datatype
+```
+
+```q
+/ KDB understands arithmetic between these types
+/ and highest level of granularity is preserved
+
+09:30:00.000 + 00:12
+09:42.00.000
+
+/ preseves time datatype
+
+09:30:00 + 00:12
+09:42.00
+
+/ preserves second datatype
+```
+
+[Temporal] Dates
+
+```q
+/ DATES in KDB have format yyyy.mm.dd
+
+type 2020.01.01
+-14h
+
+/ date datatype
+```
+
+[Temporal] Timestamp
+
+```q
+/ a TIMESTAMP is combination of time + date
+/ the current timestamp is:
+
+.z.p
+2024-01-12T06:41:58.594829p
+```
+
+[Temporal] 1. What is the current timestamp?
+
+```q
+.z.p
+2024-01-12T05:28:02.671597p
+```
+
+[Temporal] 2. What datatype is this?
+
+```q
+type .z.p
+-12h
+
+/ neg means atom
+/ 12 h = timestamp
+```
+
+🔵 Dataype Nulls and Infinite Values
+
+```q
+/ each datatype has an associated null and infinite value
+
+type 0N / null long
+type 0w / infinite float
+type 0Nf / null float
+```
+
+null keyword
+
+```q
+/ can use null keyword to identify null values
+
+null 0N 2 1 0N 3
+10010b
+
+/ returns a list of booleans
+```
+
+[temporal/null] return null type of minute
+
+```q
+0nu
+
+type 0nu
+-17h
+
+/ -17 = minute datatype
+```
+
+[temporal/null] Use the null keyword to check
+
+```q
+null 0nu
+1b
+
+/ true
+```
+
+[null] show a null long
+
+```q
+show nulllong:0Nj
+0N
+```
+
+[null] Show a null float
+
+```q
+show nullfloat: 0Nf
+0n
+```
+
 
 🔵 Casting
 
@@ -338,70 +484,10 @@ a: 1 2 3 4 5
 / so taking the last 2 = 2 largest from list
 ```
 
-🔵 Obtaining Random Data
+[Sublist] 8. What's the difference between 1 sublist and first?
 
 ```q
-/ 1. Create sortedFares, which is fares from low to high
-
-sortedFares: asc fares
-
-/ 2. Retrieve 10 random records from sortedFares
-/ and assign as sampleFares
-
-10?sortedFares
-9.7 9.3 4.1 6.5 6.5 5.7 5.7 8.9 45 7.3
-```
-
-```q
-/ 3. Retrieve the 10th element from sampleFares
-
-sampleFares[9]
-11.3
-
-/ indexing starts at 0, so 10th element = 9
-```
-
-```q
-/ 4. Retrieve the first 10 elements of fares using til
-
-fares[til 10]
-
-/ til 10 = 0 - 9
-/ so you will index a list of 0-9
-```
-
-```q
-/ 5. Retrieve the 11th to 20th element from fares using til
-
-fares[10 + til 10]
-
-/ til 10 = 0 1 2 3 4 5
-/ 10 + til 10 = 10 + every element in list
-/ so becomes 10, 11, 12, etc.
-```
-```q
-/ 6. Assume a random list of 10 numbers
-/ Use indexing to find the middle value in fares
-
-a: 10?100
-12 10 1 90 73 90 43 84 63
-
-/ generate a random list of 10 numbers
-
-a:asc a 
-
-/ sort list from small to big
-
-a [`long$(count a)%2]
-73
-
-/ count a = total number of elements %2
-/ then cast as a long
-/ doesn't work if you try to cast a float
-```
-
-```q
-/ 7. What's the difference between 1 sublist and first?
+/ sublist returns a list, while first returns an atom
 
 1 sublist fares
 ,2.5
@@ -414,27 +500,81 @@ first sublist
 / returns an atom
 ```
 
-```q
-/ 8. Use enlist to return a list containing 499
-
-enlist 499
-, 499
-
-/ creates a list of a single element
-```
-
+[List] 1. Create list k, which is 100 random numbers sorted from low to high
 
 ```q
-/ 9. Create a list by joining an empty list with 499
 
-(), 499
-, 499
+k: 100 ? 100
+k: asc k
+0 0 1 2 4 5 6 7 8 8 9 10 11 11 1
 
-/ can join a blank list with an atom
-/ to create a single item list
+/ generate 100 random ints from 0-100
 ```
 
-🔵 @ Operator
+[List] 2. Retrieve 10 random records from k
+
+```q
+10?k
+96 81 38 69 84 23 81 18 7 14
+
+/ retrieve 10 random elements from list k
+```
+
+[List] 3. Retrieve the 10th element from k
+
+```q
+k[9]
+55
+
+/ indexing starts at 0, so 10th element = 9
+```
+
+[List] 4. Retrieve the first 10 elements of k using til
+
+```q
+k[til 10]
+75 61 56 23 46 14 13 9 74 55
+
+/ til 10 = 0 - 9
+/ so you will index a list of 0-9
+```
+
+[List] 5. Retrieve the 11th to 20th element from k using til
+
+```q
+k[10 + til 10]
+92 14 90 17 89 49 80 11 8 8
+
+/ til 10 = 0 1 2 3 4 5
+/ 10 + til 10 = 10 + every element in list
+/ so becomes 10, 11, 12, etc.
+```
+
+[List] 6. Use indexing to find the middle value in k
+
+```q
+k: asc k
+k [`long$(count k) % 2]
+73
+
+/ first, sort list from small to big
+/ count k = total number of elements in list
+/ k%2 = find the "middle" index position
+/ Cast index position as a long
+/ (doesn't work if you try to cast a float)
+/ then you are using index retrieve to retrieve the value
+```
+
+[List] Create a list with single element 499 
+
+```q
+p: enlist 499
+, 499
+
+/ need to use 'enlist' for single item lists
+```
+
+🔵 @ Operator [Lists]
 
 ```q
 / 1. Generate a random list of 20 items from 0-99
@@ -738,139 +878,6 @@ type each (dict;tab;keytab)
 / we can specify the type with a CHAR trailing type indicator (will be some letter)
 ```
 
-🔵 Vectors/Lists
-
-```q
-/ a vector is a list of atoms
-
-1 2 3
-/ this is a list of longs
-```
-
-What is a string?
-
-```q
-a string is a list of chars
-
-"thisisastring"
-
-/ this is a string aka list of chars
-/ encased with double parathesis
-```
-
-🔵 Temporal Datatypes
-
-```q
-/ TIME datatype
-
-type 09:30:00.000 
--19h / time datatype
-
-/ SECOND datatype
-type 09:30:00 
--18h / second datatype
-
-/ MINUTE datatype
-type 09:30
--17h / minute datatype
-```
-
-```q
-/ KDB understands arithmetic between these types
-/ and highest level of granularity is preserved
-
-09:30:00.000 + 00:12
-09:42.00.000
-
-/ preseves time datatype
-
-09:30:00 + 00:12
-09:42.00
-
-/ preserves second datatype
-```
-
-```q
-/ DATES in KDB have format yyyy.mm.dd
-
-type 2020.01.01
--14h
-
-/ date datatype
-```
-
-```q
-/ a TIMESTAMP is combination of time + date
-/ the current timestamp is:
-
-.z.p
-2024-01-12T06:41:58.594829p
-```
-
-```q
-/ 1. What is the current timestamp?
-
-.z.p
-2024-01-12T05:28:02.671597p
-
-/ 1b. What datatype is this?
-
-type .z.p
--12h
-
-/ neg means atom
-/ 12 h = timestamp
-```
-
-```q
-/ 2. Show a null long
-
-show nulllong:0Nj
-0N
-
-/ 2b. Show a null float
-
-show nullfloat: 0Nf
-0n
-```
-
-🔵 Dataype Nulls and Infinite Values
-
-```q
-/ each datatype has an associated null and infinite value
-
-type 0N / null long
-type 0w / infinite float
-type 0Nf / null float
-```
-
-```q
-/ can use null keyword to identify null values
-
-null 0N 2 1 0N 3
-10010b
-
-/ returns a list of booleans
-```
-
-```q
-/ return null type of minute
-
-0nu
-
-type 0nu
--17h
-
-/ -17 = minute datatype
-
-/ use null keyword to check
-
-null 0nu
-1b
-
-/ true
-```
-
 🔵 Boolean Comparisons & Built in Functions
 
 ```q
@@ -1134,13 +1141,6 @@ double:2*
 double 2 3 4
 4 6 8
 ```
-
-
-
-
-
-
-
 
 
 <a name="Lists"></a>
