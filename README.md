@@ -399,6 +399,7 @@ a [`long$(count a)%2]
 / then cast as a long
 / doesn't work if you try to cast a float
 ```
+
 ```q
 / 7. What's the difference between 1 sublist and first?
 
@@ -412,6 +413,7 @@ first sublist
 
 / returns an atom
 ```
+
 ```q
 / 8. Use enlist to return a list containing 499
 
@@ -420,6 +422,8 @@ enlist 499
 
 / creates a list of a single element
 ```
+
+
 ```q
 / 9. Create a list by joining an empty list with 499
 
