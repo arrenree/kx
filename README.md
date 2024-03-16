@@ -205,76 +205,106 @@ type general
 🔵 Casting
 
 ```q
-/ casting is to convert one type to another
+/ casting is to convert one datatype to another
+```
 
-/ 1. show 3 ways to convert ints 1 2 to floats
+[Casting] 1. Show 3 ways to convert integers 1 2 to floats
 
+```q
 `float$ 1 2 / converts using symbol name
 "f"$ 1 2 / converts using character letter
 9h$ 1 2 / converts using short value
-1 2 f
 ```
 
-```q
-/ 2. Create an empty, general list
+[Casting] 2. What datatype is 30?
 
+```q
+type 30
+-7
+
+/ default numbers in kdb are longs (type 7)
+/ negative bc atom
+```
+[Casting] 3. Make 30 a "real" datatype
+
+```q
+type 30e
+-8h
+
+/ by adding "e" to the end, it becomes a "real" (type 8)
+```
+
+[Casting] 4. Make 30 a "short" datatype
+
+```q
+type 30h
+-5h
+
+/ by adding "h" it becomes a "short" (type 5)
+```
+
+[Casting] 5. Create an empty general list
+
+```q
 ()
 
 / this creates an empty, general list
 ```
 
-```q
-/ 3. Cast the empty list to longs
+[Casting] 6. Cast the empty list to longs
 
+```q
 `long$()
+
+/ cast empty list () to longs
 ```
 
-```q
-/ 4. Retrieve fares as a list
+🔵 Sublist
 
+```q
+/ sublist allows you to retrieve a subset of your output
+```
+
+[Sublist] 1. Create a list from 1 - 10 and name this fares
+
+```q
+fares: 1 + til 10
 fares
-5.7 4.9 4.9 4.5 4.9 15.3 3.7...
-
-/ can simply retrieve data as a list
-/ by calling its varaible name (fares)
-/ recall earlier you did this
-/ fares: vtsfares`fare
+1 2 3 4 5 6 7 8 9 10
 ```
-```q
-/ 5. Retrieve the 10 first rows of data from fares
 
-10 sublist fares
-5.7 4.9 4.9 4.5 4.9 15.3 3.7 8.5 13.3 11.3
+[Sublist] 2. Retrieve the 4 first elements from fares
+
+```q
+4 sublist fares
+1 2 3 4
 
 / sublist will retrieve the x number of items from a list
 ```
-```q
-/ 6. Retrieve the last 10 items from fares
 
--10 sublist fares
-12.9 4.9 44.5 5.3 19.3 9.3 8.9 45 9.7 4.5
+[Sublist] 3. Retrieve the last 3 items from fares
+
+```q
+-3 sublist fares
+8 9 10
 
 / negative sublist will retrieve the LAST 10 numbs
 ```
 
+[Sublst] 4. Retrieve the second 3 items in list
+
 ```q
-/ 7. Retrieve the second 10 elements in list
+/ for example, ignoring 1 2 3, give me the next 3 elements
 
--10 sublist 20 sublist fares
-22.5 6.9 16.5 24.1 9.3 9.3 6.1 8.1 5.7 8.5
-
-/ so 20 sublist = retrieves 20 items
-/ then -10 retrieves the LAST 10 items from the list of 20
-
-/ alternative syntax:
-
-10 10 sublist fares
+3 3 sublist fares
+4 5 6
 ```
-```q
-/ 8. What is the diff btwn sublist and take #
 
-/ sublist only retrieves up to the list amount (does not loop)
-/ while take keeps looping
+[Sublist] 5. What is the difference between sublist and take #
+
+```q
+/ sublist only retrieves up to the max list amount (does not loop)
+/ take # keeps looping
 
 a: 1 2 3 4 5
 
@@ -288,21 +318,24 @@ a: 1 2 3 4 5
 
 / take loops back around the list
 ```
-```q
-/ 9. Sort fares by ascending order
-/ then retrieve 10 items
 
-10 sublist asc fares
-2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5
+[Sublist] 6. Sort fares list by ascending order, retrieve first 3 items
+
+```q
+3 sublist asc fares
+1 2 3
+
+/ asc will sort your list in ascending order
 ```
-```q
-/ 10. Retrieve the 10 largest numbers from fares
 
--10 sublist asc fares
-104 104 108.5 112.5 120 122 128 134.3 190 200
+[Sublist] 7. Retrieve the 2 largest numbers from fares
+
+```q
+-2 sublist asc fares
+8 9
 
 / asc sorts from low to high
-/ so taking the last 10 = 10 largest from list
+/ so taking the last 2 = 2 largest from list
 ```
 
 🔵 Obtaining Random Data
@@ -699,25 +732,6 @@ type each (dict;tab;keytab)
 
 / if we want to create an atom of a datatype that isn't the default,
 / we can specify the type with a CHAR trailing type indicator (will be some letter)
-
-type 30
--7
-
-/ so default number = long = 7
-
-/ 1b. now make 30 a real datatype using e
-
-type 30e
--8h
-
-/ now it comes a "real" = type 8
-
-/ 1c. now make it a short
-
-type 30h
--5h
-
-/ now it comes a "short" = type 5
 ```
 
 🔵 Vectors/Lists
@@ -729,8 +743,10 @@ type 30h
 / this is a list of longs
 ```
 
+What is a string?
+
 ```q
-/ a string is a list of chars
+a string is a list of chars
 
 "thisisastring"
 
@@ -883,6 +899,11 @@ deltas 2 8 4 9
 ```
 
 🔵 Primitives
+
+```q
+/ primitives are native in-built functions within kdb+
+/ these include addition, subtraction, multiplication, and division 
+```
 
 ```q
 / 1. There are 140 calories in candy. Daily calorie intake guidance is 2000
@@ -1109,6 +1130,14 @@ double:2*
 double 2 3 4
 4 6 8
 ```
+
+
+
+
+
+
+
+
 
 <a name="Lists"></a>
 ### 🔴 [4.0] Lists
