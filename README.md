@@ -878,35 +878,37 @@ type each (dict;tab;keytab)
 / we can specify the type with a CHAR trailing type indicator (will be some letter)
 ```
 
-🔵 Boolean Comparisons & Built in Functions
+🔵 Boolean Comparisons / Comparison Operator
+
+[comparison operator] 1. Check if 2 is in the list 2 4 1 2 3
 
 ```q
-/ 1. Given the list 2 4 1 2 3, return a boolean list
-/ if the element contains a value of 2
-/ expected outcome: 10010b
-
 2 = 2 4 1 2 3
 10010b
 
-/ by using the comparison operator
+/ by using the comparison operator =
 / will compare left element to every element in right list
 / and return a list of booleans
 ```
 
+[comparison operator] 2. How do you check if 1 is in the list 1 2 3 4
+
 ```q
-/ 2. Calculate the standard deviation of the series 1 2 3 4 5
+1 in 1 2 3 4
+1b
 
-dev 1 2 3 4 5
-1.414
-
-/ use dev for standard deviation
+/ using boolean operator, atom vs list
+/ returns a boolean outcome
+/ is LEFT in RIGHT list?
 ```
 
-```q
-/ 3. Find the difference in values in the series 2 8 4 9
+[comparison operator] 3. How do you check if 1 2 are in list 2 3 4?
 
-deltas 2 8 4 9
-2 6 -4 5
+```q
+1 2 in 2 3 4
+01b
+
+/ are (these LEFT items) in (this RIGHT list)
 ```
 
 🔵 Primitives
@@ -916,48 +918,34 @@ deltas 2 8 4 9
 / these include addition, subtraction, multiplication, and division 
 ```
 
-```q
-/ 1. There are 140 calories in candy. Daily calorie intake guidance is 2000
-/ how many bags should we eat a day?
+[primitives] 1. There are 140 calories in a bag of candy. Daily calorie intake guidance is 2000 how many bags should we eat a day?
 
+```q
 2000 % 140
 14.2857143
+```
 
-/ 2. How do you round to nearest bag?
+[primitives] 2. How do you round to nearest bag?
+
+```q
 / hint - use the floor keyword
 
 floor 2000 % 140
 14
 
 / floor rounds down to the nearest whole number
+```
 
-/ 3. you can also use div the keyword
+[primitives] 3. How do you divide using the div keyword
 
+```q
 2000 div 140
 14
 ```
 
-```q
-/ 2. how do you check if 1 is in list 1 2 3 4?
-
-1 in 1 2 3 4
-1b
-
-/ is LEFT in RIGHT list?
-```
+[primitives] 4. What day of the week is today?
 
 ```q
-/ 3. how do you check if 1 2 are in list 2 3 4?
-
-1 2 in 2 3 4
-01b
-
-/ are (these LEFT items) in (this RIGHT list)
-```
-
-```q
-/ 4. Check what day of the week today is?
-
 .z.d mod 7
 6i
 
@@ -966,6 +954,24 @@ floor 2000 % 140
 / so friday!
 
 / worth remembering that weekends are 0 1 (sat n sun)
+```
+
+[primitives] 5. Calculate the standard deviation of the series 1 2 3 4 5
+
+```q
+dev 1 2 3 4 5
+1.414
+
+/ use dev for standard deviation
+```
+
+[primitives] 6. Find the difference in values in the series 2 8 4 9
+
+```q
+deltas 2 8 4 9
+2 6 -4 5
+
+/ built in deltas function calculates difference btwn successive elements
 ```
 
 🔵 Function Notation
