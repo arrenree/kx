@@ -1,19 +1,20 @@
 # KX Academy Notes
 <a name="top"></a>
 
-1. [Loading Data](#load)
+1. [Loading CSV Files](#load)
 2. [Datatypes & Data Structures](#data)
-3. [Atoms & Primitives](#atoms)
-4. [Lists](#Lists)
-5. [String Manipulation](#string)
-6. [Casting](#casting)
-7. [Functions](#func)
-8. [Iterators](#iterators)
-9. [Function Control](#funccontrol)
-10. [Dictionaries](#dict)
-11. [Tables](#tables)
-12. [QSQL](#qsql)
-13. [Joins](#joins2)
+3. [Booleans & Primitives](#atoms)
+4. [@ Operator](#@)
+5. [Lists](#Lists)
+6. [String Manipulation](#string)
+7. [Casting](#casting)
+8. [Functions](#func)
+9. [Iterators](#iterators)
+10. [Function Control](#funccontrol)
+11. [Dictionaries](#dict)
+12. [Tables](#tables)
+13. [QSQL](#qsql)
+14. [Joins](#joins2)
 
 <hr>
 
@@ -129,72 +130,15 @@ date       |  Month  |vendor|      pickup_time       |       dropoff_time      |
 ### 🔴 [2.0] Datatypes / Casting
 [Top](#top)
 
-```q
-/ 1. load the smalltrips csv file
-
-smalltrips:("DMSPPNJFFFFFSFFFFF"; enlist ",") 0: `:smalltrips.csv
-
-```
-
-[List] 1. Retrieve fares from trips on 2009.01.01 for vendor VTS; assign to vtsfares
+🔵 Atoms
 
 ```q
-vtsfare: select fare from trips where date = 2009.01.01, vendor = `VTS
+/ an atom is a irreducible datatype in kdb/q
+/ default number = long
 
-fare
-----
-5.7 
-4.9 
-4.9 
-4.5 
-4.9 
-15.3
-3.7 
-8.5 
-13.3
-11.3
-
-/ retrieved single column (fare) from table trips
+/ if we want to create an atom of a datatype that isn't the default,
+/ we can specify the type with a CHAR trailing type indicator (will be some letter)
 ```
-
-[List] 2. Retrieve fares as a list from table vtsfare using indexing; assign the results to variable fares
-
-```q
-fares: vtsfares`fare
-5.7 4.9 4.9 4.5 4.9 15.3 3.7 8.5
-
-/ indexing method to retrieve a list from a table
-/ syntax is tablename`col_name
-```
-
-[List] 3. Check the datatype for fares
-
-```q
-type fares
-9h
-
-/ 9h means simple list
-/ simple list = list with all same datatypes
-/ positive number means list (neg means atom)
-```
-
-[List] 4. Create a general list with sym VTS and float 23.45
-
-```q
-/ general list = different datatypes (aka mixed list)
-
-general: (`VTS;23.45)
-```
-
-[List] 5. Check datatype for general
-
-```q
-type general
-0h
-
-/ general lists always have type zero
-```
-
 
 [Datatype] What is a list/vector?
 
@@ -405,6 +349,690 @@ type 30h
 / cast empty list () to longs
 ```
 
+<a name="atoms"></a>
+### 🔴 [3.0] Booleans & Primitives
+[Top](#top)
+
+
+🔵 Boolean Comparisons / Comparison Operator
+
+[comparison operator] 1. Check if 2 is in the list 2 4 1 2 3
+
+```q
+2 = 2 4 1 2 3
+10010b
+
+/ by using the comparison operator =
+/ will compare left element to every element in right list
+/ and return a list of booleans
+```
+
+[comparison operator] 2. How do you check if 1 is in the list 1 2 3 4
+
+```q
+1 in 1 2 3 4
+1b
+
+/ using boolean operator, atom vs list
+/ returns a boolean outcome
+/ is LEFT in RIGHT list?
+```
+
+[comparison operator] 3. How do you check if 1 2 are in list 2 3 4?
+
+```q
+1 2 in 2 3 4
+01b
+
+/ are (these LEFT items) in (this RIGHT list)
+```
+
+🔵 Primitives
+
+```q
+/ primitives are native in-built functions within kdb+
+/ these include addition, subtraction, multiplication, and division 
+```
+
+[primitives] 1. There are 140 calories in a bag of candy. Daily calorie intake guidance is 2000 how many bags should we eat a day?
+
+```q
+2000 % 140
+14.2857143
+```
+
+[primitives] 2. How do you round to nearest bag?
+
+```q
+/ hint - use the floor keyword
+
+floor 2000 % 140
+14
+
+/ floor rounds down to the nearest whole number
+```
+
+[primitives] 3. How do you divide using the div keyword
+
+```q
+2000 div 140
+14
+```
+
+[primitives] 4. What day of the week is today?
+
+```q
+.z.d mod 7
+6i
+
+/ in KDB, the week "starts" on a saturday
+/ so sat = 0, sun = 1, mon =2....fri = 6
+/ so friday!
+
+/ worth remembering that weekends are 0 1 (sat n sun)
+```
+
+[primitives] 5. Calculate the standard deviation of the series 1 2 3 4 5
+
+```q
+dev 1 2 3 4 5
+1.414
+
+/ use dev for standard deviation
+```
+
+[primitives] 6. Find the difference in values in the series 2 8 4 9
+
+```q
+deltas 2 8 4 9
+2 6 -4 5
+
+/ built in deltas function calculates difference btwn successive elements
+```
+
+🔵 Function Notation
+
+```q
+/ Function - a sequence of expressions separated by semicolons
+/ and surrounded by left and right braces
+
+/ there are various ways to apply a function to its arguments
+
+f[x]         / bracket notation
+f x          / prefix
+x + y        / infix
+f\           / postfix
+```
+
+```q
+/ Functional notation uses keyword functions
+/ and applies to arguments on right
+
+neg -10 -2
+-10 -2
+
+/ neg = keyword function
+/ applies neg function to all args on right
+
+/ alternative syntax
+
+neg[10 2]
+-10 -2
+```
+
+1. Check if 1 is in 2 3 using functional notation
+
+```q
+1 in 2 3
+0b
+/ false
+
+/ alternative syntax
+
+in[1;2 3]
+0b
+```
+
+Variable Assignment
+
+```q
+/ in KDB, once you assign a variable, you can continue using it
+
+pi: 22%7
+radius: 5
+area: pi * radius * radius
+area
+78.57
+
+/ once you assign 22%7 to pi, you can re-use the variable pi
+```
+
+🔵 Functional Notation & Projecting Primitives
+
+```q
+/ in-built kdb functions which take multiple inputs
+/ can be bound to a given input, creating a projection
+
+add2: 2+ / we dont define second input
+add2: +[2; ] / functional notation - leave second parameter blank
+add2: +[2] / alternative syntax; same thing
+
+add2 4
+6
+
+/ takes 2 from original definition
+/ and feeds in 4 from second input
+```
+
+[Primitives] 1. Create an addition function using the + operator
+
+```q
+add:+
+add[5;5]
+10
+```
+
+[Primitives] 2. Create an equality function using the = built-in primitive
+
+```q
+=[2;3]
+0b
+
+/ = will compare the 2 elements for equality
+```
+
+[Primitives] 3. Create an addition function that already has one input defined (for ex, 4)
+
+```q
+add4: 4+
+add4 3
+7
+
+/ you can save built in primitives (+ or -) as a variable (add4)
+/ then apply the variable to another input
+
+/ 3b. Create an addition function using the [ ] syntax
+
+add5: +[5]
+add5 2
+7
+
+/ 3c. Here's an alternative syntax
+
+add6: +[ ;6]
+add6 3
+9
+
+/ 4c. This also works:
+
+add7: +[7; ]
+add7 1
+8
+```
+
+[Primitives] 4. Create a function to see if 2 arguments have same value and type
+
+```q
+
+equality:~
+equality[3;3]
+1b
+
+/ ~ match compares both value + type
+/ since its a built-in primitive, you can use it compare 2 arguments
+```
+
+[Primitives] 5. Create a func to return a booleans indicating whether an arg is positive
+
+```q
+/ hint - you want to "bind" the second argument as 0
+/ and feed in a list of values as your first argument
+
+ispositive: >[ ; 0]
+ispositive -4 2 8
+011b
+
+/ so you feed in list of elements (-4 2 8) as x
+/ and your function checks if x if > 0 (your second arg)
+```
+
+[Primitives] 6. Create a function that takes 2 away from a list of inputs
+
+```q
+minus2: -[ ; 2]
+minus2 10 9 8
+8 7 6
+
+/ first argument (x) = list of inputs (10 9 8)
+/ second argument (y) = 2
+```
+
+[Primitives] 7. Create a function that subtracts a list of inputs from 10
+
+```q
+sub10:-[10; ]
+sub10 1 2 3
+9 8 7
+
+/ so x stays constant at 10
+/ and subjects a list of inputs y
+```
+
+[Primitives] 8. Create a funct that takes a sole number and doubles it
+
+```q
+double:2*
+double 2 3 4
+4 6 8
+```
+
+<a name="@"></a>
+### 🔴 [4.0] @ Operator (Lists, Dict, Tables)
+[Top](#top)
+
+
+🔵 @ Operator [Lists]
+
+[@ Operator - Lists] 1. Generate a random list of 20 items from 0-99
+
+```q
+a: 20? 100
+12 8 10 1 9 11 5 6 1 5 4 13 9 2 7 0 17 14 9 18
+```
+
+[@ Operator - Lists] 2. Retrieve elements 0 2 4 6 8 from a using indexing
+
+```q
+a[2*til 5]
+a[0 2 4 6 8]
+93 38 88 68 2
+
+/ til 5 = 0 1 2 3 4 
+/ 2 * 0 2 4 6 8
+```
+
+[@ Operator - Lists] 3. Retrieve elements 0 2 4 6 8 using @ Operator
+
+```q
+@[a; (2*til 5)]
+93 38 88 68 2
+
+/ syntax is @ [list; (indexing)]
+```
+
+[@ Operator - Lists] 4. Create b, which is a list from 1 to 10
+
+```q
+b: 1 + til 10
+1 2 3 4 5 6 7 8 9 10
+```
+
+[@ Operator - Lists] 5. Retrieve elements 0, 2, 4, 6, 8 from b using @ operator
+
+```q
+@[b;(2*til 5)]
+1 3 5 7 9
+
+/ 2 * til 5 = 0 2 4 6 8
+/ syntax is @ [list; (indexing)]
+/ so from b, retrieves element using indexing
+```
+
+[@ Operator - Lists] 6. Replace elements 0, 2, 4, 6, 8 with 100 in list b
+
+```q
+@[b;(2* til 5); : ;100]
+100 2 100 4 100 6 100 8 100 10
+
+/ 2 * til 5 = 0 2 4 6 8
+/ retrieves list b (1 2 3 ...10)
+/ but replaces those indexed elements with 100
+/ the : replaces the indexed result with 100
+```
+
+[@ Operator - Lists] 7. Retrieve list b, but subtract 1 from elements 0, 2, 4, 6, 8
+
+```q
+@[b;(2* til 5); - ; 1]
+0 2 2 4 4 6 6 8 8 10
+
+/ so b = 1 2 3 4 5 6 7 8 9 10
+/ 1 - 1 = 0
+/ 3 -2 = 2
+/ etc
+
+/ same works with + instead of -
+/ note these changes are NOT persistent
+/ if you want to save the changes, use backtick
+
+@[`b;(2* til 5); - ; 1]
+```
+
+[@ Operator - Lists] 8. Cast list b to flaots, then replace index elements 0, 2, 4, 6, 8 with nulls (0Nf)
+
+```q
+b: `float$b / cast list b as floats
+
+@[`b;(2*til 5);:;0Nf]
+0n 2 0n 4 0n 6 0n 8 0n 10f
+
+/ replaced index elements with 0N = nulls
+/ note backtick b saves the result
+```
+
+[@ Operator - Lists] 9. Check if list b has any nulls
+
+```q
+any null b
+1b
+
+/ 1b = true
+```
+
+[@ Operator - Lists] 10. Replace any nulls in b with average of list b
+
+```q
+@[b; where null b;:;avg b]
+6 2 6 4 6 6 6 8 6 10f
+
+/ note you can use "where null b"
+/ aka, where there are nulls in b
+/ replace with avg of b
+/ can perform operations on replacement!
+```
+
+🔵 @ Dictionaries
+
+```q
+/ dictionaries are first class objects in q
+/ also known as hashmaps in other languages
+/ use ! operator to create
+```
+
+[@ Operator - Dict] 1. Create a dictionary with syms a, b with 0 and 1
+
+```q
+d: `a`b ! 0 1
+a| 0
+b| 1
+```
+
+[@ Operator - Dict] 2. Update the value of a with 2
+
+```q 
+d[`a]: 2
+
+a| 2
+b| 1
+```
+
+[@ Operator - Dict] 3. Add `c with value 3 to your dictionary
+
+```q
+d[`c]:3
+
+a| 2
+b| 1
+c| 3
+
+/ indexing a new key will append it + value
+```
+
+[@ Operator - Dict] 4. Create d1: with keys abcd and values 5 6 7 8
+
+```q
+d1: `a`b`c`d ! 5 6 7 8
+a| 5
+b| 6
+c| 7
+d| 8
+```
+
+[@ Operator - Dict] 5. Join d and d1 together, adding values for common keys
+
+```q
+d + d1
+
+a| 7
+b| 7
+c| 10
+d| 8
+
+/ matches on key, then adds value together
+/ a = 2 + 5 = 7
+/ b = 1 + 6 = 7
+/ c = 3 + 7 = 10
+/ d = null + 8 = 8
+```
+
+[@ Operator - Dict] 6. Join d and d1 together, update values for matched keys, insert values for new keys
+
+```q
+d, d1
+
+a| 5
+b| 6
+c| 7
+d| 8
+
+/ match on a, replaces with 5 (from d1)
+/ match on b, replaces with 6 (from d1)
+/ match on c, replaces with 7 (from d1)
+/ no match on d, inserts new record (from d1)
+```
+
+🔵 @ Tables
+
+[@ Operator - Table] 1. Create a table from a list of like dictionaries
+
+```q
+`a`b! 0 1
+
+Key |	Value
+----------
+a   |	  0
+b	  |   1
+
+/ simple dictionary with keys a, b
+
+/ if you create a list of dict with same keys:
+
+(`a`b! 0 1; `a`b! 2 3)
+
+a | b
+------
+0 | 1
+2 | 3
+
+/ notice the keys a and b become column headers
+/ and the corresponding values fall into table
+/ so a table is a flipped dictionary
+```
+
+[@ Operator - Table] 2. Create a table from flipping a dictionary
+
+```q
+flip `a`b! (0 2; 1 3)
+
+a | b
+------
+0 | 1
+2 | 3
+
+```
+
+[@ Operator - Table] 3. Create dict with keys a, b, c and assign each key a list of 3 random ints
+
+```q
+dict: `a`b`c! (3?10i; 3?10i; 3?10i)
+
+a| 1 4 0
+b| 0 8 5
+c| 9 7 2
+
+```
+
+[@ Operator - Table] 4. Add new key d, with double values of key a
+
+```q
+dict[`d]: 2*dict[`a]
+
+a| 1 4 0
+b| 0 8 5
+c| 9 7 2
+d| 2 8 0
+
+/ when you index a new key for dict
+/ it adds the key
+/ dict[`a] will retrieve the VALUES for key a
+/ and multiply by 2 for each
+```
+
+[@ Operator - Table] 5. Make a table from dict
+
+```q
+tab: flip dict
+
+a b c d
+-------
+1 0 9 2
+4 8 7 8
+0 5 2 0
+```
+
+[@ Operator - Table] 6. Make a new table by joining the table to itself
+
+```q
+tab2: tab, tab
+
+a b c d
+-------
+1 0 9 2
+4 8 7 8
+0 5 2 0
+1 0 9 2
+4 8 7 8
+0 5 2 0
+
+```
+
+[@ Operator - Table] 7. Key column b in new table, rename as keytab
+
+```q
+keytab: `b xkey tab2
+
+/ syntax is col_name xkey table_name
+```
+
+[@ Operator - Table] 8. Compare the types of dict, tab, and keytab
+
+```q
+type each (dict;tab;keytab)
+99 98 99h
+
+/ 99 = dict
+/ 98 = table
+/ 99h = keyed table
+```
+
+<a name="Lists"></a>
+### 🔴 [5.0] Lists
+[Top](#top)
+
+
+```q
+/ a dictionary is a collection of lists
+/ a table is a list of dictionaries
+
+/ what is the diff between "a" and "abc"
+
+/ "a" is a char
+/ "abc" is a string aka char vector aka list of chars
+
+/ there are 2 types of lists: simple and general lists
+```
+
+```q
+/ note in kdb, default number type are LONGs
+/ if you want a list of ints, need to specify
+
+ints:1 2 3i
+
+/ create a list of 10 ints
+
+ints2: `int$til 10
+
+/ til 10 generates list of 10 longs
+/ then cast to `int
+```
+
+
+```q
+/ 1. load the smalltrips csv file
+
+smalltrips:("DMSPPNJFFFFFSFFFFF"; enlist ",") 0: `:smalltrips.csv
+
+```
+
+[List] 1. Retrieve fares from trips on 2009.01.01 for vendor VTS; assign to vtsfares
+
+```q
+vtsfare: select fare from trips where date = 2009.01.01, vendor = `VTS
+
+fare
+----
+5.7 
+4.9 
+4.9 
+4.5 
+4.9 
+15.3
+3.7 
+8.5 
+13.3
+11.3
+
+/ retrieved single column (fare) from table trips
+```
+
+[List] 2. Retrieve fares as a list from table vtsfare using indexing; assign the results to variable fares
+
+```q
+fares: vtsfares`fare
+5.7 4.9 4.9 4.5 4.9 15.3 3.7 8.5
+
+/ indexing method to retrieve a list from a table
+/ syntax is tablename`col_name
+```
+
+[List] 3. Check the datatype for fares
+
+```q
+type fares
+9h
+
+/ 9h means simple list
+/ simple list = list with all same datatypes
+/ positive number means list (neg means atom)
+```
+
+[List] 4. Create a general list with sym VTS and float 23.45
+
+```q
+/ general list = different datatypes (aka mixed list)
+
+general: (`VTS;23.45)
+```
+
+[List] 5. Check datatype for general
+
+```q
+type general
+0h
+
+/ general lists always have type zero
+```
+
 🔵 Sublist
 
 ```q
@@ -572,611 +1200,6 @@ p: enlist 499
 , 499
 
 / need to use 'enlist' for single item lists
-```
-
-🔵 @ Operator [Lists]
-
-```q
-/ 1. Generate a random list of 20 items from 0-99
-
-a: 20? 100
-
-/ 2. Retrieve elements 0 2 4 6 8 from a using indexing
-
-a[2*til 5]
-a[0 2 4 6 8]
-93 38 88 68 2
-
-/ til 5 = 0 1 2 3 4 
-/ 2 * 0 2 4 6 8
-```
-
-```q
-/ 3. Retrieve the same, using the @ operator
-
-@[a; (2*til 5)]
-93 38 88 68 2
-
-/ syntax is @ [list; indexing]
-```
-
-```q
-/ 4. Create b, list from 1 to 10
-
-b: 1 + til 10
-1 2 3 4 5 6 7 8 9 10
-```
-
-```q
-/ 4b. Retrieve elements 0, 2, 4, 6, 8 from b using @ operator
-
-@[b;(2*til 5)]
-1 3 5 7 9
-
-/ 2 * til 5 = 0 2 4 6 8
-/ so from b, retrieves element using indexing
-```
-
-```q
-/ 4c. Retrieve list b, but replace elements 0, 2, 4, 6, 8 with 100
-
-@[b;(2* til 5); : ;100]
-100 2 100 4 100 6 100 8 100 10
-
-/ retrieves list b (1 2 3 ...10)
-/ but replaces those indexed elements with 100
-/ the : replaces the indexed result with 100
-```
-
-```q
-/ 4d. Retrieve list b, but subtract 1 from elements 0, 2, 4, 6, 8
-
-@[b;(2* til 5); - ; 1]
-0 2 2 4 4 6 6 8 8 10
-
-/ so b = 1 2 3 4 5 6 7 8 9 10
-/ 1 - 1 = 0
-/ 3 -2 = 2
-/ etc
-
-/ same works with + instead of -
-/ note these changes are NOT persistent
-/ if you want to save the changes, use backtick
-
-@[`b;(2* til 5); - ; 1]
-```
-```q
-/ 5. cast list b to floats
-/ then replace index elements 0, 2, 4, 6, 8 with nulls (0Nf)
-
-b: `float$b / cast list b as floats
-
-@[`b;(2*til 5);:;0Nf]
-0n 2 0n 4 0n 6 0n 8 0n 10f
-
-/ replaced index elements with 0N = nulls
-/ note backtick b saves the result
-```
-```q
-/ 6. Check if list b has any nulls
-
-any null b
-1b
-
-/ 1b = true
-```
-```q
-/ 7. Replace any nulls in b with average of list b
-
-@[b; where null b;:;avg b]
-6 2 6 4 6 6 6 8 6 10f
-
-/ note you can use "where null b"
-/ aka, where there are nulls in b
-/ replace with avg of b
-/ can perform operations on replacement!
-```
-
-🔵 @ Dictionaries
-
-```q
-/ dictionaries are first class objects in q
-/ also known as hashmaps in other languages
-/ use ! operator to create
-```
-
-```q
-/ 1. Create a dictionary with syms a, b with 0 and 1
-
-d: `a`b ! 0 1
-a| 0
-b| 1
-```
-
-```q
-/ 2. update the value of a with 2
-
-d[`a]: 2
-
-a| 2
-b| 1
-```
-```q
-/ 3. add `c with value 3 to your dictionary
-
-d[`c]:3
-
-a| 2
-b| 1
-c| 3
-
-/ indexing a new key will append it + value
-```
-```q
-/ 4. create d1:
-
-d1: `a`b`c`d ! 5 6 7 8
-a| 5
-b| 6
-c| 7
-d| 8
-```
-```q
-/ 5. join d and d1 together, adding values for common keys
-
-d + d1
-
-a| 7
-b| 7
-c| 10
-d| 8
-
-/ matches on key, then adds value together
-/ a = 2 + 5 = 7
-/ b = 1 + 6 = 7
-/ c = 3 + 7 = 10
-/ d = null + 8 = 8
-```
-```q
-/ 6. join d and d1 together, update values for matched keys, insert values for new keys
-
-d, d1
-
-a| 5
-b| 6
-c| 7
-d| 8
-
-/ match on a, replaces with 5 (from d1)
-/ match on b, replaces with 6 (from d1)
-/ match on c, replaces with 7 (from d1)
-/ no match on d, inserts new record (from d1)
-```
-
-🔵 @ Tables
-
-```q
-/ 1. Create a table from a list of like dictionaries
-
-`a`b! 0 1
-
-Key |	Value
-----------
-a   |	  0
-b	  |   1
-
-/ simple dictionary with keys a, b
-
-/ if you create a list of dict with same keys:
-
-(`a`b! 0 1; `a`b! 2 3)
-
-a | b
-------
-0 | 1
-2 | 3
-
-/ notice the keys a and b become column headers
-/ and the corresponding values fall into table
-/ so a table is a flipped dictionary
-```
-
-```q
-/ 2. Create a table from flipping a dictionary
-
-flip `a`b! (0 2; 1 3)
-
-a | b
-------
-0 | 1
-2 | 3
-
-```
-
-```q
-/ 3. Create dict with keys a, b, c and assign each key a list of 3 random ints
-
-dict: `a`b`c! (3?10i; 3?10i; 3?10i)
-
-a| 1 4 0
-b| 0 8 5
-c| 9 7 2
-
-/ 4. Add new key d, with double values of key a
-
-dict[`d]: 2*dict[`a]
-
-a| 1 4 0
-b| 0 8 5
-c| 9 7 2
-d| 2 8 0
-
-/ when you index a new key for dict
-/ it adds the key
-/ dict[`a] will retrieve the VALUES for key a
-/ and multiply by 2 for each
-```
-
-```q
-/ 4. make a table from dict
-
-tab: flip dict
-
-a b c d
--------
-1 0 9 2
-4 8 7 8
-0 5 2 0
-```
-
-```q
-/ 5. Make a new table by joining the table to itself
-
-tab2: tab, tab
-
-a b c d
--------
-1 0 9 2
-4 8 7 8
-0 5 2 0
-1 0 9 2
-4 8 7 8
-0 5 2 0
-
-```
-
-```q
-/ 6. Key column b in new table, rename as keytab
-
-keytab: `b xkey tab2
-
-/ syntax is col_name xkey table_name
-```
-
-```q
-/ 7. Compare the types of dict, tab, and keytab
-
-type each (dict;tab;keytab)
-99 98 99h
-
-/ 99 = dict
-/ 98 = table
-/ 99h = keyed table
-```
-
-<a name="atoms"></a>
-### 🔴 [3.0] Atoms & Primitives
-[Top](#top)
-
-🔵 Atoms
-
-```q
-/ an atom is a irreducible datatype in kdb/q
-/ default number = long
-
-/ if we want to create an atom of a datatype that isn't the default,
-/ we can specify the type with a CHAR trailing type indicator (will be some letter)
-```
-
-🔵 Boolean Comparisons / Comparison Operator
-
-[comparison operator] 1. Check if 2 is in the list 2 4 1 2 3
-
-```q
-2 = 2 4 1 2 3
-10010b
-
-/ by using the comparison operator =
-/ will compare left element to every element in right list
-/ and return a list of booleans
-```
-
-[comparison operator] 2. How do you check if 1 is in the list 1 2 3 4
-
-```q
-1 in 1 2 3 4
-1b
-
-/ using boolean operator, atom vs list
-/ returns a boolean outcome
-/ is LEFT in RIGHT list?
-```
-
-[comparison operator] 3. How do you check if 1 2 are in list 2 3 4?
-
-```q
-1 2 in 2 3 4
-01b
-
-/ are (these LEFT items) in (this RIGHT list)
-```
-
-🔵 Primitives
-
-```q
-/ primitives are native in-built functions within kdb+
-/ these include addition, subtraction, multiplication, and division 
-```
-
-[primitives] 1. There are 140 calories in a bag of candy. Daily calorie intake guidance is 2000 how many bags should we eat a day?
-
-```q
-2000 % 140
-14.2857143
-```
-
-[primitives] 2. How do you round to nearest bag?
-
-```q
-/ hint - use the floor keyword
-
-floor 2000 % 140
-14
-
-/ floor rounds down to the nearest whole number
-```
-
-[primitives] 3. How do you divide using the div keyword
-
-```q
-2000 div 140
-14
-```
-
-[primitives] 4. What day of the week is today?
-
-```q
-.z.d mod 7
-6i
-
-/ in KDB, the week "starts" on a saturday
-/ so sat = 0, sun = 1, mon =2....fri = 6
-/ so friday!
-
-/ worth remembering that weekends are 0 1 (sat n sun)
-```
-
-[primitives] 5. Calculate the standard deviation of the series 1 2 3 4 5
-
-```q
-dev 1 2 3 4 5
-1.414
-
-/ use dev for standard deviation
-```
-
-[primitives] 6. Find the difference in values in the series 2 8 4 9
-
-```q
-deltas 2 8 4 9
-2 6 -4 5
-
-/ built in deltas function calculates difference btwn successive elements
-```
-
-🔵 Function Notation
-
-```q
-/ Function - a sequence of expressions separated by semicolons
-/ and surrounded by left and right braces
-
-/ there are various ways to apply a function to its arguments
-
-f[x]         / bracket notation
-f x          / prefix
-x + y        / infix
-f\           / postfix
-```
-
-```q
-/ Functional notation uses keyword functions
-/ and applies to arguments on right
-
-neg -10 -2
--10 -2
-
-/ neg = keyword function
-/ applies neg function to all args on right
-
-/ alternative syntax
-
-neg[10 2]
--10 -2
-```
-```q
-/ 1. Check if 1 is in 2 3 using functional notation
-
-1 in 2 3
-0b
-/ false
-
-/ alternative syntax
-
-in[1;2 3]
-0b
-
-```
-
-```q
-/ Variable Assignment
-
-/ in KDB, once you assign a variable, you can continue using it
-
-pi: 22%7
-radius: 5
-area: pi * radius * radius
-area
-78.57
-
-/ once you assign 22%7 to pi, you can re-use the variable pi
-```
-
-🔵 Functional Notation & Projecting in-built Primitives
-
-```q
-/ in-built kdb functions which take multiple inputs
-/ can be bound to a given input, creating a projection
-
-add2: 2+ / we dont define second input
-add2: +[2; ] / functional notation - leave second parameter blank
-add2: +[2] / alternative syntax; same thing
-
-add2 4
-6
-
-/ takes 2 from original definition
-/ and feeds in 4 from second input
-```
-
-```q
-/ 1. Create an addition function using the + operator
-
-add:+
-add[5;5]
-10
-```
-
-```q
-/ 2. Create an equality function using the = built-in primitive
-
-=[2;3]
-0b
-
-/ = will compare the 2 elements for equality
-```
-
-```q
-/ 3. Create an addition function that already has one input defined (for ex, 4)
-
-add4: 4+
-add4 3
-7
-
-/ you can save built in primitives (+ or -) as a variable (add4)
-/ then apply the variable to another input
-
-/ 3b. Create an addition function using the [ ] syntax
-
-add5: +[5]
-add5 2
-7
-
-/ 3c. Here's an alternative syntax
-
-add6: +[ ;6]
-add6 3
-9
-
-/ 4c. This also works:
-
-add7: +[7; ]
-add7 1
-8
-```
-
-```q
-/ 4. Create a function to see if 2 arguments have same value and type
-
-equality:~
-equality[3;3]
-1b
-
-/ ~ match compares both value + type
-/ since its a built-in primitive, you can use it compare 2 arguments
-```
-
-```q
-/ 5. Create a func to return a booleans indicating whether an arg is positive
-/ hint - you want to "bind" the second argument as 0
-/ and feed in a list of values as your first argument
-
-ispositive: >[ ; 0]
-ispositive -4 2 8
-011b
-
-/ so you feed in list of elements (-4 2 8) as x
-/ and your function checks if x if > 0 (your second arg)
-```
-
-```q
-/ 6. Create a function that takes 2 away from a list of inputs
-
-minus2: -[ ; 2]
-minus2 10 9 8
-8 7 6
-
-/ first argument (x) = list of inputs (10 9 8)
-/ second argument (y) = 2
-```
-
-```q
-/ 7. Create a function that subtracts a list of inputs from 10
-
-sub10:-[10; ]
-sub10 1 2 3
-9 8 7
-
-/ so x stays constant at 10
-/ and subjects a list of inputs y
-```
-
-```q
-/ 8. Create a funct that takes a sole number and doubles it
-
-double:2*
-double 2 3 4
-4 6 8
-```
-
-
-<a name="Lists"></a>
-### 🔴 [4.0] Lists
-[Top](#top)
-
-```q
-/ a dictionary is a collection of lists
-/ a table is a list of dictionaries
-
-/ what is the diff between "a" and "abc"
-
-/ "a" is a char
-/ "abc" is a string aka char vector aka list of chars
-
-/ there are 2 types of lists: simple and general lists
-```
-
-```q
-/ note in kdb, default number type are LONGs
-/ if you want a list of ints, need to specify
-
-ints:1 2 3i
-
-/ create a list of 10 ints
-
-ints2: `int$til 10
-
-/ til 10 generates list of 10 longs
-/ then cast to `int
 ```
 
 🔵 General Lists
