@@ -1209,10 +1209,18 @@ p: enlist 499
 / or a list of lists
 / need to use brackets () and semicolon ; to delimit the diff items
 / general list has type 0h
+```
 
+[Lists] 1. Show an example of a general list:
+
+```q
 person: (`john;32;`USA)
 / a general list of a sym, long, and sym
+```
 
+[List] 2. Check the datatype for list person
+
+```q
 type person
 0h
 
@@ -1226,23 +1234,28 @@ type each person
 
 / sym, long, sym
 ```
+
 🔵 ? Operator
 
 ```q
-/ ? can either be used as a random generator
-/ or find
+/ ? can either be used as a random generator or find
 
-/ if atom ? atom = randomly generate x items frm list y
-/ if list ? atom = find y element from list x
+/ atom ? atom = randomly generate x items frm list y
+/ list ? atom = find y element from list x
 ```
 
-```q
-/ if atom ? atom = random generator
-/ general x random elements from y list
+[? Operator] Atom ? Atom
 
+```q
+/ atom ? atom = random generator
+/ general x random elements from y list
+```
+
+[? Operator] 1. Generate a list of 5 random longs between 0-9
+
+```q
 ?[5;10]
 4 8 2 4 3
-/ generate a list of 5 random longs between 0-9
 
 / alternative syntax
 
@@ -1275,23 +1288,28 @@ error
 
 /same thing
 ```
-```q
-/ 1. Generate 5 dates from the 3 dates leading up to 2023.01.01
 
-5 ? 2011.01.01-til 3
-2011.01.01 2010.12.30 2011.01.01 2010.12.31 2010.12.30
-```
+[? Operator] 2. Generate 5 dates from the 3 dates leading up to 2023.01.01
+
 ```q
-/ 2. Generate 100 random numbers form 10-20
+5 ? 2011.01.01 - til 3
+2011.01.01 2010.12.30 2011.01.01 2010.12.31 2010.12.30
+
+```
+
+[? Operator] 3. Generate 100 random numbers form 10-20
+
+```q
 100 ? 10 + til 11
 
 / 10 + til 11 = 10...20
 ```
 
+[? Operator] Find Operator
+
 ```q
 / ? as FIND operator
-
-/ if list ? atom = FIND y atom in list x
+/ list ? atom = FIND y atom in list x
 
 1 2 3 4 5 ? 5
 ?[1 2 3 4 5; 5]
@@ -1299,14 +1317,16 @@ error
 
 / 5 first appears in index position 4
 ```
+
+[? Operator] 1. Find the first occurence of 5 and 1 in list 1 2 3 4 5
+
 ```q
-/ 1. Find the first occurence of 5 and 1
 
 1 2 3 4 5 ? 5 1
 4 0
 ```
 
-🔵 Joining Lists and Indexing to Retrieve
+[List] Joining Lists and Indexing to Retrieve
 
 ```q
 / we can join lists using ,
@@ -1315,12 +1335,12 @@ error
 1 2 3 4 5
 ```
 
+[List] Retrieve index element 0 from list
+
 ```q
 list: 10 20 30 40 50
 list 0
 10
-
-/ retrieve index element 0 from list
 
 / alternative syntax
 / written explicitly (functionally)
@@ -1328,6 +1348,9 @@ list 0
 list[0]
 10
 ```
+
+[List] Indexing out of Bounds
+
 ```q
 / indexing out of bounds
 
@@ -1351,12 +1374,11 @@ y[10]
 / null real
 ```
 
-🔵 Indexing Nested Lists / Matrix
+🔵 Matrix
+
+[Matrix] 1. Create a matrix with 9 elements using CUT where you multiple base element by 3
 
 ```q
-/ 1. Create a matrix with 9 elements using CUT
-/ where you multiple base element by 3
-
 m: 3 cut 3 * til 9
 0  3  6 
 9  12 15
@@ -1365,26 +1387,29 @@ m: 3 cut 3 * til 9
 / 3 * til 9 = multiples 3 with every element from 0-8
 / CUT keyword cuts up list by left hand arg (3)
 ```
-```q
-/ 2. Retrieve the first row
 
+[Matrix] 2. Retrieve the first row
+
+```q
 m[0]
 0 3 6
 
 / index 0 retrieves first ROW
 ```
-```q
-/ 3. Retrieve 3 6 from first row
 
+[Matrix] 3. Retrieve 3 6 from first row
+
+```q
 m[0][1 2]
 3 6
 
 / index 0 = first row
 / then retrieve index position 1 and 2
 ```
-```q
-/ 4. What is the difference between m[0;1] and m 0 1
 
+[Matrix] 4. What is the difference between m[0;1] and m 0 1
+
+```q
 m[0;1]
 3
 
@@ -1397,9 +1422,10 @@ m 0 1
 
 / retrieves entire rows 0 and 1
 ```
-```q
-/ 5. Retrieve the first item from all lists
 
+[Matrix] 5. Retrieve the first item from all lists
+
+```q
 m[ ; 0]
 0 9 18
 
@@ -1408,7 +1434,7 @@ m[ ; 0]
 / goes [ROW, COLUMN]
 ```
 
-🔵 List Manipulation
+[List] Take #
 
 ```q
 # take
@@ -1425,6 +1451,9 @@ k: 1 2 3 4 5
 
 / # take last 2 elements of list k
 ```
+
+[List] Drop _
+
 ```q
 _ drop
 
@@ -1438,6 +1467,9 @@ _ drop
 
 / drops last element of k
 ```
+
+[List] Sublist
+
 ```q
 sublist
 
@@ -1456,8 +1488,10 @@ sublist
 / starts index 0
 / retrieves 6 elements
 ```
+
+[List] 1. What's the diff between take and sublist?
+
 ```q
-/ 1. What's the diff between take and sublist?
 
 8# til 5
 0 1 2 3 4 0 1 2
@@ -1468,15 +1502,19 @@ sublist
 / take "loops around" and repeats
 / while sublist DOES NOT loop nor repeats
 ```
+
+[List] 2. Retrieve the last 2 items from k
+
 ```q
 k: 1 2 3 4 5 6
 
-/ 1. retrieve the last 2 items from k
-
 -2 # k
 5 6
+```
 
-/ 2. retrieve the second from last item of k
+[List] 3. retrieve the second from last item of k
+
+```q
 
 (-2#k) 0
 5
@@ -1484,21 +1522,24 @@ k: 1 2 3 4 5 6
 / first retrieve last 2 items of k
 / then use indexing to retrieve 0 index position
 ```
+
+[List] 4. Retrieve 2 and 3 from k
+
 ```q
 k: 1 2 3 4 5
 
-/ 3. Retrieve 2 and 3 from k
-
 1 2 sublist k
 2 3
+```
 
-/ 4. Retrieve index position 1 and 2 from k
+[List] 5. Retrieve index position 1 and 2 from k
 
+```q
 k[1 2]
 2 3
 ```
 
-🔵 Where Operator in Lists
+[List] Where Operator
 
 ```q
 where 000111b
@@ -1506,6 +1547,9 @@ where 000111b
 
 / where operator in list returns indices where booleans are TRUE (1b)
 ```
+
+
+
 ```q
 / WHERE is useful to find positions where certain criteria is met
 
