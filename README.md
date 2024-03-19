@@ -1548,28 +1548,33 @@ where 000111b
 / where operator in list returns indices where booleans are TRUE (1b)
 ```
 
-
+[List] 1. Generate 10 random numbers from 0-49
 
 ```q
-/ WHERE is useful to find positions where certain criteria is met
-
 k: 10?50
-/ generate 10 random numbers from 0-49
 
+```
+
+[List] 2. Using comparison operator, returns list of booleans that are greater than 30
+
+```q
 k > 30 
 0001000010b
 
-/ using comparison operator, returns list of booleans
-/ where element fits criteria
+```
 
+[List] 3. which index positions are > 30?
+
+```q
 where k > 30
 3 8
 
 / index positions 3 and 8 are TRUE
+```
 
-/ can then use list of indices to index BACK into original list
-/ and return VALUES that meet the criteria
+[List] 4. Using the WHERE function, plug the list of indices back into original list to return values
 
+```q
 k[where[k>30]]
 40 43 37
 
@@ -1580,9 +1585,10 @@ k[where[k>30]]
 / then you INDEX those index positions back into list
 / to retrieve the actual values
 ```
-```q
-/ 4. return items in k that are divisible by 3
 
+[List] 5. return items in k that are divisible by 3
+
+```q
 k: 1 2 3 4 5 6 7
 
 k mod 3
@@ -1607,18 +1613,21 @@ k where 0=k mod 3
 
 / boom.
 ```
-```q
-/ 5. Given list 1 1 2 3 1 1 2:
 
-/ 5a. Find index position of first 3
+[List] 6. Find index position of first 3
+
+```q
+Given list 1 1 2 3 1 1 2:
 
 1 1 2 3 1 1 2 ? 3
 3
 
 / list ? atom = FIND index pos of y atom in x list
+```
 
-/ 5b. all index occurences of 3
+[List] 7. Find all index occurences of 3
 
+```q
 where 1 1 2 3 1 1 2 = 3
 ,3
 
